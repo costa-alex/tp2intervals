@@ -1,9 +1,10 @@
+version: "3.9"
 services:
-  app:
-    image: ghcr.io/freekode/tp2intervals:latest
+  tp2intervals:
+    image: ghcr.io/costa-alex/tp2intervals:latest
     container_name: tp2intervals
     restart: unless-stopped
-    volumes:
-      - ./tp2intervals.sqlite:/tp2intervals.sqlite
     ports:
-      - '8080:8080'
+      - "8098:8080"
+    volumes:
+      - ./data:/data

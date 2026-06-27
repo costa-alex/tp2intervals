@@ -1,15 +1,15 @@
+<!-- 
 [![Build branches](https://github.com/freekode/tp2intervals/actions/workflows/branch.yml/badge.svg)](https://github.com/freekode/tp2intervals/actions/workflows/branch.yml)
 [![release](https://img.shields.io/github/release/freekode/tp2intervals)](https://github.com/freekode/tp2intervals/releases/latest)
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/E1E6W6XZP)
+-->
 
 # Third Party to Intervals.icu
 
 App to sync workouts between TrainingPeaks, TrainerRoad and Intervals.icu.
 
-Runs on MacOS (DMG), Windows (EXE installer), Linux (AppImage). Alternatively there is Docker image and executable JAR.
-
-All files are available for download on [Release page](https://github.com/freekode/tp2intervals/releases/latest).
+The tool runs on Docker and there's an executable JAR.
 
 **Only for educational purposes**
 
@@ -30,18 +30,9 @@ All files are available for download on [Release page](https://github.com/freeko
     + [How to get logs](#how-to-get-logs)
     + [How to record HAR file](#how-to-record-har-file)
 
+**Docker image location ⚠️**
 
-
-**New Docker image location ⚠️**
-
-**New image url: `ghcr.io/freekode/tp2intervals`**
-
-Old image url: `ghcr.io/freekode/tp2intervals/tp2intervals`
-
-**TrainerRoad Updates**
-
-I don't have access to TrainerRoad anymore. Account, which I used, cancelled subscription. I don't use the platform and it's too expensive to have it for occasional fixes.
-To fix issues I can only relay on logs and HAR files from you.
+**Image url: `ghcr.io/costa-alex/tp2intervals:latest`**
 
 ## List of features
 
@@ -103,7 +94,7 @@ The project has executable jar with web UI. It requires JDK 21. To run jar:
 java -jar tp2intervals.jar
 ```
 
-By default, UI is available on `http://localhost:8080`. To change port start jar with parameter:
+By default, UI is available on `http://localhost:8098`. To change port start jar with parameter:
 ```shell
 java -Dserver.port=9090 -jar tp2intervals.jar
 ```
@@ -112,24 +103,22 @@ java -Dserver.port=9090 -jar tp2intervals.jar
 Docker image also built for every release
 
 ```yaml
+version: "3.9"
 services:
-  app:
-    image: ghcr.io/freekode/tp2intervals:latest
+  tp2intervals:
+    image: ghcr.io/costa-alex/tp2intervals:latest
     container_name: tp2intervals
-    volumes:
-      - ./tp2intervals.sqlite:/tp2intervals.sqlite
+    restart: unless-stopped
     ports:
-      - '8080:8080'
+      - "8098:8080"
+    volumes:
+      - ./data:/data
 ```
 
 ## FAQ
 
 ### General
 * Ramp steps in TrainerRoad are not supported
-* **MacOS arm64** Error: `"tp2intervals" is damaged and can’t be opened.`
-  Run command in terminal `xattr -d com.apple.quarantine /Applications/tp2intervals.app` and then open app again
-* **MacOS** app is not signed. Usually you need to open it twice
-* **Windows** The app will ask to access local network and Internet, you need to allow it. After all it makes HTTP requests
 * More info you can find on the forum https://forum.intervals.icu/t/tp2intervals-copy-trainingpeaks-and-trainerroad-workouts-plans-to-intervals/63375
 
 ### Info regarding scheduling for the next day with TrainingPeaks free account
@@ -154,9 +143,6 @@ Gather logs from [guide below](#how-to-get-logs). And in case of TrainerRoad pla
 3. Reproduce your issue
 4. Find log file according to your system
 
-* Linux: ~/.config/tp2intervals/logs/main.log
-* MacOS: ~/Library/Logs/tp2intervals/main.log
-* Windows: %USERPROFILE%\AppData\Roaming\tp2intervals\logs\main.log
 * JAR: ./tp2intervals.log
 
 #### How to record HAR file

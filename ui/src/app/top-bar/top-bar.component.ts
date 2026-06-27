@@ -25,7 +25,7 @@ import {MatTooltipModule} from "@angular/material/tooltip";
 export class TopBarComponent implements OnInit {
   appVersion: string
   updateAvailableBadgeHidden = true;
-  githubLink = 'https://github.com/freekode/tp2intervals'
+  githubLink = 'https://github.com/costa-alex/tp2intervals'
 
   menuButtons = [
     {name: 'Home', url: '/home'},
