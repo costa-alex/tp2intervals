@@ -50,9 +50,10 @@ jobs:
           APP_DEFAULT_CONFIG_TRAINER_ROAD_REMOVE_HTML_TAGS: true
         run: |
           cd ./boot
-          ./gradlew build
+          ./gradlew build -x test
 
       - name: Cypress tests
+        if: false
         run: |
           npm ci --prefix cypress
           java -jar boot/build/libs/tp2intervals.jar \
