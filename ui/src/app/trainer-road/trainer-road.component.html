@@ -1,52 +1,74 @@
-<div *ngIf="!platformInfo">
-  <mat-progress-bar mode="query"></mat-progress-bar>
-</div>
+<div class="trainer-road-page">
 
-<div *ngIf="platformInfo?.isValid === false">
-  Platform is not configured. Please set required parameters on Configuration page
-</div>
+  <div *ngIf="!platformInfo" class="loading-container">
+    <mat-progress-bar mode="query"></mat-progress-bar>
+  </div>
 
-<div *ngIf="platformInfo?.isValid">
-  <mat-accordion multi>
-    <mat-expansion-panel>
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          Sync planned workouts
-        </mat-panel-title>
-        <mat-panel-description>
-          <div>
-            Copy workouts from TrainerRoad to another platform calendar
+  <div *ngIf="platformInfo?.isValid === false" class="not-configured">
+    Platform is not configured. Please set required parameters on the Configuration page.
+  </div>
+
+  <div *ngIf="platformInfo?.isValid" class="content-container">
+    <mat-accordion multi class="action-accordion">
+
+      <mat-expansion-panel class="action-panel">
+        <mat-expansion-panel-header class="action-header">
+          <div class="action-header-content">
+            <div class="action-icon">
+              <mat-icon>sync</mat-icon>
+            </div>
+
+            <div class="action-text">
+              <div class="action-title">Sync planned workouts</div>
+              <div class="action-description">
+                Copy planned workouts from TrainerRoad to another platform calendar.
+              </div>
+            </div>
           </div>
-        </mat-panel-description>
-      </mat-expansion-panel-header>
+        </mat-expansion-panel-header>
 
-      <tr-copy-calendar-to-calendar></tr-copy-calendar-to-calendar>
-    </mat-expansion-panel>
+        <tr-copy-calendar-to-calendar></tr-copy-calendar-to-calendar>
+      </mat-expansion-panel>
 
-    <mat-expansion-panel>
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          Copy workout
-        </mat-panel-title>
-        <mat-panel-description>
-          Copy workout from TrainerRoad library to Intervals workout library
-        </mat-panel-description>
-      </mat-expansion-panel-header>
+      <mat-expansion-panel class="action-panel">
+        <mat-expansion-panel-header class="action-header">
+          <div class="action-header-content">
+            <div class="action-icon">
+              <mat-icon>fitness_center</mat-icon>
+            </div>
 
-      <tr-copy-library-to-library></tr-copy-library-to-library>
-    </mat-expansion-panel>
+            <div class="action-text">
+              <div class="action-title">Copy workout</div>
+              <div class="action-description">
+                Copy a workout from the TrainerRoad library to the Intervals workout library.
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel-header>
 
-    <mat-expansion-panel>
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          Copy planned workouts to library
-        </mat-panel-title>
-        <mat-panel-description>
-          Copy workouts from TrainerRoad calendar to Intervals workout library
-        </mat-panel-description>
-      </mat-expansion-panel-header>
+        <tr-copy-library-to-library></tr-copy-library-to-library>
+      </mat-expansion-panel>
 
-      <tr-copy-calendar-to-library></tr-copy-calendar-to-library>
-    </mat-expansion-panel>
-  </mat-accordion>
+      <mat-expansion-panel class="action-panel">
+        <mat-expansion-panel-header class="action-header">
+          <div class="action-header-content">
+            <div class="action-icon">
+              <mat-icon>library_books</mat-icon>
+            </div>
+
+            <div class="action-text">
+              <div class="action-title">Copy planned workouts to library</div>
+              <div class="action-description">
+                Copy planned workouts from the TrainerRoad calendar to the Intervals workout library.
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel-header>
+
+        <tr-copy-calendar-to-library></tr-copy-calendar-to-library>
+      </mat-expansion-panel>
+
+    </mat-accordion>
+  </div>
+
 </div>
