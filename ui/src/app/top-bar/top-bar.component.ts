@@ -8,6 +8,16 @@ import {forkJoin} from "rxjs";
 import {GitHubClient} from "infrastructure/client/github.client";
 import * as semver from "semver";
 import {MatTooltipModule} from "@angular/material/tooltip";
+import { MatIconModule } from "@angular/material/icon";
+import { MatSidenavModule } from "@angular/material/sidenav";
+import { BreakpointObserver } from '@angular/cdk/layout';
+import { map, shareReplay } from 'rxjs/operators';
+import { MatListModule } from '@angular/material/list';
+import { MatDividerModule } from '@angular/material/divider';
+import { ViewChild } from '@angular/core';
+import { MatDrawer } from '@angular/material/sidenav';
+import { NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-top-bar',
@@ -17,42 +27,84 @@ import {MatTooltipModule} from "@angular/material/tooltip";
     MatToolbarModule,
     RouterLink,
     MatBadgeModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatIconModule,
+    MatSidenavModule,
+    MatListModule,
+    MatDividerModule
   ],
   templateUrl: './top-bar.component.html',
   styleUrl: './top-bar.component.scss'
 })
+
 export class TopBarComponent implements OnInit {
+  @ViewChild(MatDrawer)
+  drawer?: MatDrawer;
+
   appVersion: string
   updateAvailableBadgeHidden = true;
   githubLink = 'https://github.com/costa-alex/tp2intervals'
 
   menuButtons = [
-    {name: 'Home', url: '/home'},
-    {name: 'TrainingPeaks', url: '/training-peaks'},
-    {name: 'TrainerRoad', url: '/trainer-road'},
-    {name: 'Configuration', url: '/config'},
-  ]
+    {
+      icon: 'home',
+      name: 'Home',
+      url: '/home'
+    },
+    {
+      icon: 'timeline',
+      name: 'TrainingPeaks',
+      url: '/training-peaks'
+    },
+    {
+      icon: 'directions_bike',
+      name: 'TrainerRoad',
+      url: '/trainer-road'
+    },
+    {
+      icon: 'settings',
+      name: 'Configuration',
+      url: '/config'
+    }
+  ];
 
   constructor(
     protected router: Router,
     private githubClient: GitHubClient,
-    private environmentService: EnvironmentService
+    private environmentService: EnvironmentService,
+    private breakpointObserver: BreakpointObserver
   ) {
   }
 
+  readonly isMobile$ = this.breakpointObserver.observe('(max-width: 768px)')
+  .pipe(
+    map(result => result.matches),
+    shareReplay()
+  );
+
   ngOnInit(): void {
+
+    this.router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => {
+        this.drawer?.close();
+      });
+
     forkJoin([
       this.githubClient.getLatestRelease(),
-      this.environmentService.getVersion(),
+      this.environmentService.getVersion()
     ]).subscribe(result => {
-      this.appVersion = result[1]
-      let latestRelease = result[0]
+
+      this.appVersion = result[1];
+      const latestRelease = result[0];
+
       if (semver.gt(latestRelease.version, this.appVersion)) {
         this.updateAvailableBadgeHidden = false;
-        this.githubLink = latestRelease.url
+        this.githubLink = latestRelease.url;
       }
       console.log(result);
-    })
+    });
+
   }
 }
+

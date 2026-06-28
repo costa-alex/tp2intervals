@@ -1,21 +1,37 @@
+.drawer-container {
+  height: auto;
+}
+
 .spacer {
   flex: 1 1 auto;
 }
 
-.external-link {
-  padding-top: 8px;
+.mobile-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 12px;
+  font-weight: 500;
 }
 
-.github-link {
-  font-size: 20px;
-
-  span {
-    letter-spacing: 0;
-    margin-right: 15px;
-  }
+mat-drawer {
+  width: 280px;
 }
 
-.kofi-icon {
-  height: 48px;
-  padding-top: 4px;
+.drawer-header {
+
+  padding: 20px 16px 12px;
+
+}
+
+.drawer-header h3 {
+
+  margin: 0;
+
+}
+
+.drawer-header small {
+
+  opacity: .7;
+
 }
