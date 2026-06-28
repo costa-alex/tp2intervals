@@ -1,9 +1,10 @@
 .drawer-container {
-  height: auto;
+  min-height: 64px;
 }
 
-.spacer {
-  flex: 1 1 auto;
+mat-drawer {
+  width: 280px;
+  max-width: 85vw;
 }
 
 .mobile-title {
@@ -12,26 +13,23 @@
   gap: 8px;
   margin-left: 12px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
-mat-drawer {
-  width: 280px;
+.spacer {
+  flex: 1 1 auto;
 }
 
 .drawer-header {
-
   padding: 20px 16px 12px;
-
 }
 
 .drawer-header h3 {
-
   margin: 0;
-
 }
 
 .drawer-header small {
-
+  display: block;
+  margin-top: 4px;
   opacity: .7;
-
 }

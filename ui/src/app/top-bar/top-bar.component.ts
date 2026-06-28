@@ -18,6 +18,7 @@ import { ViewChild } from '@angular/core';
 import { MatDrawer } from '@angular/material/sidenav';
 import { NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'app-top-bar',
@@ -31,7 +32,8 @@ import { filter } from 'rxjs';
     MatIconModule,
     MatSidenavModule,
     MatListModule,
-    MatDividerModule
+    MatDividerModule,
+    AsyncPipe
   ],
   templateUrl: './top-bar.component.html',
   styleUrl: './top-bar.component.scss'
