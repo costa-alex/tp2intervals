@@ -55,8 +55,10 @@
     matBadgePosition="before"
     matBadgeColor="accent">
 
-    <span>v{{ appVersion }}</span>
-    <mat-icon svgIcon="github"></mat-icon>
+    <span class="github-content">
+      <mat-icon class="github-icon" svgIcon="github"></mat-icon>
+      <span class="version-text">v{{ appVersion }}</span>
+    </span>
 
   </a>
 

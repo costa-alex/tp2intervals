@@ -33,3 +33,30 @@
     display: none;
   }
 }
+
+.github-link {
+  height: 40px;
+  padding: 0 8px;
+}
+
+.github-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1;
+}
+
+.github-icon {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+  line-height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.version-text {
+  line-height: 20px;
+  font-weight: 600;
+}

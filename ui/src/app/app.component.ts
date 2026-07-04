@@ -34,8 +34,8 @@ export class AppComponent implements OnInit {
 
   menuButtons = [
     { icon: 'home', name: 'Home', url: '/home' },
-    { icon: 'timeline', name: 'TrainingPeaks', url: '/training-peaks' },
     { icon: 'directions_bike', name: 'TrainerRoad', url: '/trainer-road' },
+    { icon: 'timeline', name: 'TrainingPeaks', url: '/training-peaks' },
     { icon: 'settings', name: 'Configuration', url: '/config' }
   ];
 

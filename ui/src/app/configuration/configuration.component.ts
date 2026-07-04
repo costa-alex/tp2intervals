@@ -16,6 +16,7 @@ import {MatOptionModule} from "@angular/material/core";
 import {MatSelectModule} from "@angular/material/select";
 import {MatExpansionModule} from "@angular/material/expansion";
 import {MatTooltipModule} from "@angular/material/tooltip";
+import {MatIconModule} from '@angular/material/icon';
 
 @Component({
   selector: 'app-configuration',
@@ -32,7 +33,8 @@ import {MatTooltipModule} from "@angular/material/tooltip";
     MatOptionModule,
     MatSelectModule,
     MatExpansionModule,
-    MatTooltipModule
+    MatTooltipModule,
+    MatIconModule
   ],
   templateUrl: './configuration.component.html',
   styleUrl: './configuration.component.scss'
