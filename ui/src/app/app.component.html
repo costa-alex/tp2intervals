@@ -40,52 +40,35 @@
       <router-outlet></router-outlet>
     </main>
 
-<mat-drawer-container class="app-container">
+    <footer class="app-footer">
+      <div class="footer-content">
 
-  ...
+        <div class="footer-meta">
+          <span>TP2Intervals</span>
 
-  <mat-drawer-content>
+          <span class="footer-separator"> • </span>
 
-    <app-top-bar
-      ...
-    ></app-top-bar>
+          <span>v{{ appVersion }}</span>
 
-    <main class="app-main">
-  <router-outlet></router-outlet>
-</main>
+          <span class="footer-separator"> • </span>
 
-<footer class="app-footer">
-  <div class="footer-content">
+          <a
+            [href]="githubLink"
+            target="_blank"
+            rel="noopener noreferrer">
+            GitHub
+          </a>
+        </div>
 
-    <div class="footer-meta">
-      <span>TP2Intervals</span>
+        <div class="footer-disclaimer">
+          TP2Intervals is an independent, self-hosted application and is not
+          affiliated with, endorsed by, or sponsored by TrainerRoad,
+          TrainingPeaks, or Intervals.icu. All trademarks belong to their
+          respective owners.
+        </div>
 
-      <span class="footer-separator">•</span>
-
-      <span>v{{ appVersion }}</span>
-
-      <span class="footer-separator">•</span>
-
-      <a
-        [href]="githubLink"
-        target="_blank"
-        rel="noopener noreferrer">
-        GitHub
-      </a>
-    </div>
-
-    <div class="footer-disclaimer">
-      TP2Intervals is an independent, self-hosted application and is not
-      affiliated with, endorsed by, or sponsored by TrainerRoad, TrainingPeaks,
-      or Intervals.icu. All trademarks belong to their respective owners.
-    </div>
-
-  </div>
-</footer>
-
-  </mat-drawer-content>
-
-</mat-drawer-container>
+      </div>
+    </footer>
 
   </mat-drawer-content>
 
