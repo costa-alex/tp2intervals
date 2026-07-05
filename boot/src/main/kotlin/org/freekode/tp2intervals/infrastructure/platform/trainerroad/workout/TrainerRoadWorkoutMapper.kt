@@ -33,7 +33,7 @@ class TrainerRoadWorkoutMapper {
             detailsDTO.workoutName,
             getDescription(detailsDTO.workoutDescription, removeHtmlTags),
             Duration.ofMinutes(detailsDTO.duration.toLong()),
-            detailsDTO.tss?.roundToInt()
+            detailsDTO.tss?.roundToInt(),
             ExternalData.empty().withTrainerRoad(detailsDTO.id)
         )
     }

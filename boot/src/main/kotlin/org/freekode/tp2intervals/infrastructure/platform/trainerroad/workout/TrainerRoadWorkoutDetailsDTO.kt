@@ -16,7 +16,7 @@ class TrainerRoadWorkoutDetailsDTO(
     @JsonProperty("IsOutside")
     @JsonAlias("isOutside")
     val isOutside: Boolean,
-    @@JsonProperty("Tss")
+    @JsonProperty("Tss")
     @JsonAlias("tss", "TSS", "WorkoutTss", "workoutTss", "TrainingStressScore", "trainingStressScore")
     val tss: Double? = null,
     @JsonProperty("Duration")
