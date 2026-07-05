@@ -19,6 +19,12 @@ class WorkoutService(
     private val workoutRepositoryMap = workoutRepositories.associateBy { it.platform() }
     private val planRepositoryMap = planRepositories.associateBy { it.platform() }
 
+    private fun hasSameExternalId(source: ExternalData, target: ExternalData): Boolean {
+        return (source.trainerRoadId != null && source.trainerRoadId == target.trainerRoadId)
+            || (source.trainingPeaksId != null && source.trainingPeaksId == target.trainingPeaksId)
+            || (source.intervalsId != null && source.intervalsId == target.intervalsId)
+    }
+    
     fun copyWorkoutsC2C(request: CopyFromCalendarToCalendarRequest): CopyWorkoutsResponse {
         log.info("Received request for copy calendar to calendar: $request")
         val sourceWorkoutRepository = workoutRepositoryMap[request.sourcePlatform]!!
@@ -28,7 +34,15 @@ class WorkoutService(
         var filteredWorkoutsToSync = allWorkoutsToSync.filter { request.types.contains(it.details.type) }
         if (request.skipSynced) {
             val plannedWorkouts = targetWorkoutRepository.getWorkoutsFromCalendar(request.startDate, request.endDate)
-            filteredWorkoutsToSync = filteredWorkoutsToSync.filter { !plannedWorkouts.contains(it) }
+
+            filteredWorkoutsToSync = filteredWorkoutsToSync.filter { sourceWorkout ->
+                plannedWorkouts.none { targetWorkout ->
+                    hasSameExternalId(
+                        sourceWorkout.details.externalData,
+                        targetWorkout.details.externalData
+                    )
+                }
+            }
         }
 
         val response = CopyWorkoutsResponse(

@@ -20,23 +20,49 @@ data class ExternalData(
     fun withTrainerRoad(trainerRoadId: String) = ExternalData(trainingPeaksId, intervalsId, trainerRoadId)
 
     fun fromSimpleString(string: String): ExternalData {
-        val split = string.split(externalDataDescriptionSeparator)
-        if (split.size != 2) {
-            return this
+        val normalized = string
+            .replace("<br\\s*/?>".toRegex(RegexOption.IGNORE_CASE), "\n")
+            .replace("</p>".toRegex(RegexOption.IGNORE_CASE), "\n")
+            .replace("<[^>]*>".toRegex(), "")
+            .replace("&nbsp;", " ")
+            .replace("&amp;", "&")
+
+        val metadata = if (normalized.contains(externalDataDescriptionSeparator)) {
+            normalized.substringAfter(externalDataDescriptionSeparator)
+        } else {
+            normalized
         }
 
-        val fields = split[1].trim().split("\n")
         var externalData = this
-        fields.map {
-            val field = it.split("=")
-            if (field[0] == "trainingPeaksId" && externalData.trainingPeaksId == null) {
-                externalData = externalData.withTrainingPeaks(field[1])
-            } else if (field[0] == "intervalsId" && externalData.intervalsId == null) {
-                externalData = externalData.withIntervals(field[1])
-            } else if (field[0] == "trainerRoadId" && externalData.trainerRoadId == null) {
-                externalData = externalData.withTrainerRoad(field[1])
+
+        fun readField(name: String): String? {
+            return metadata
+                .lineSequence()
+                .map { it.trim() }
+                .firstOrNull { it.startsWith("$name=") }
+                ?.substringAfter("=")
+                ?.trim()
+                ?.takeIf { it.isNotBlank() }
+        }
+
+        if (externalData.trainingPeaksId == null) {
+            readField("trainingPeaksId")?.let {
+                externalData = externalData.withTrainingPeaks(it)
             }
         }
+
+        if (externalData.intervalsId == null) {
+            readField("intervalsId")?.let {
+                externalData = externalData.withIntervals(it)
+            }
+        }
+
+        if (externalData.trainerRoadId == null) {
+            readField("trainerRoadId")?.let {
+                externalData = externalData.withTrainerRoad(it)
+            }
+        }
+
         return externalData
     }
 

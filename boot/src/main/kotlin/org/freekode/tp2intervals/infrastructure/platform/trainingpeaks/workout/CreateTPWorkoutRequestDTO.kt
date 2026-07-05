@@ -19,6 +19,13 @@ class CreateTPWorkoutRequestDTO(
 
     companion object {
 
+        private fun buildDescription(workout: Workout): String {
+            return listOfNotNull(
+                workout.details.description?.takeIf { it.isNotBlank() },
+                workout.details.externalData.toSimpleString()
+            ).joinToString("\n\n")
+        }
+        
         fun planWorkout(
             athleteId: String, workout: Workout, structureStr: String?
         ): CreateTPWorkoutRequestDTO {
@@ -27,7 +34,7 @@ class CreateTPWorkoutRequestDTO(
                 workout.date ?: LocalDate.now(),
                 TPTrainingTypeMapper.getByType(workout.details.type),
                 workout.details.name,
-                workout.details.externalData.toSimpleString(),
+                buildDescription(workout),
                 null,
                 workout.details.duration?.toMinutes()?.toDouble()?.div(60),
                 null,

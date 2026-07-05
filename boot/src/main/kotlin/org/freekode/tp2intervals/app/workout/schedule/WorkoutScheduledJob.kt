@@ -30,7 +30,7 @@ class WorkoutScheduledJob(
         scheduleRequestRepository.deleteById(id)
     }
 
-    @Scheduled(fixedRate = 3, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(fixedRate = 30, timeUnit = TimeUnit.MINUTES)
     fun job() {
         val requests = getRequests().map { it.toSchedulable() }
         log.info("Starting processing scheduled requests. There are ${requests.size} requests")
