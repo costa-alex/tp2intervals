@@ -35,15 +35,20 @@
 }
 
 .github-link {
-  height: 40px;
-  padding: 0 8px;
+  height: 36px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  line-height: 36px;
 }
 
 .github-content {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  line-height: 1;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  line-height: 36px;
 }
 
 .github-icon {
@@ -57,12 +62,19 @@
 }
 
 .version-text {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
   line-height: 20px;
+  font-size: 14px;
   font-weight: 600;
 }
 
 .version-badge {
   position: relative;
-  display: inline-block;
   padding-right: 8px;
+}
+
+:host ::ng-deep .github-icon svg {
+  display: block;
 }
