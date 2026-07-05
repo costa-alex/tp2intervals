@@ -45,38 +45,35 @@
     </mat-checkbox>
   </div>
 
-  <div class="action-button-section">
-    <button
-      mat-raised-button
-      id="btn-confirm"
-      color="primary"
-      type="button"
-      [disabled]="formGroup.invalid || inProgress"
-      (click)="submit()"
-    >
-      Confirm
-    </button>
-    <button
-      mat-raised-button
-      color="primary"
-      type="button"
-      style="margin-left: 10px"
-      [disabled]="formGroup.invalid || inProgress"
-      (click)="today()"
-    >
-      Only today
-    </button>
-    <button
-      mat-raised-button
-      color="primary"
-      type="button"
-      style="margin-left: 10px"
-      [disabled]="formGroup.invalid || inProgress"
-      (click)="tomorrow()"
-    >
-      Only tomorrow
-    </button>
-  </div>
+  <div class="action-button-section action-grid">
+  <button
+    mat-raised-button
+    id="btn-confirm"
+    color="primary"
+    type="button"
+    [disabled]="formGroup.invalid || inProgress"
+    (click)="submit()">
+    Confirm
+  </button>
+
+  <button
+    mat-raised-button
+    color="primary"
+    type="button"
+    [disabled]="formGroup.invalid || inProgress"
+    (click)="today()">
+    Only today
+  </button>
+
+  <button
+    mat-raised-button
+    color="primary"
+    type="button"
+    [disabled]="formGroup.invalid || inProgress"
+    (click)="tomorrow()">
+    Only tomorrow
+  </button>
+</div>
 
   <div *ngIf="scheduleRequests.length > 0" style="margin-bottom: 10px">
     <mat-list>
@@ -101,21 +98,24 @@
     </mat-list>
   </div>
 
-  <div class="action-button-section">
-    <button
-      mat-raised-button
-      color="primary"
-      type="button"
-      matTooltip="Scheduled job runs every 20 minutes and will sync workouts for today. Jobs won't persist after app restart"
-      [disabled]="formGroup.invalid || inProgress"
-      (click)="scheduleToday()"
-    >
-      Schedule for today
-    </button>
-    <i class="bi bi-stars beta-icon"
-       matTooltip="Beta feature"
-       matTooltipPosition="right"></i>
-  </div>
+  <div class="action-button-section action-grid single-action">
+  <button
+    mat-raised-button
+    color="primary"
+    type="button"
+    matTooltip="Scheduled job runs every 20 minutes and will sync workouts for today. Jobs won't persist after app restart"
+    [disabled]="formGroup.invalid || inProgress"
+    (click)="scheduleToday()">
+    Schedule for today
+  </button>
+
+  <mat-icon
+    class="beta-icon"
+    matTooltip="Beta feature"
+    matTooltipPosition="right">
+    auto_awesome
+  </mat-icon>
+</div>
 
   <mat-progress-bar *ngIf="inProgress" mode="query" style="margin-top: 10px"></mat-progress-bar>
 </form>
