@@ -7,6 +7,7 @@ class TPWorkoutCalendarResponseDTO(
     val workoutDay: LocalDateTime,
     workoutId: String,
     workoutTypeValueId: Int?,
+    workoutSubTypeValueId: Int?,
     title: String?,
     totalTimePlanned: Double?,
     tssPlanned: Int?,
@@ -16,6 +17,7 @@ class TPWorkoutCalendarResponseDTO(
 ): TPBaseWorkoutResponseDTO(
     workoutId,
     workoutTypeValueId,
+    workoutSubTypeValueId,
     title,
     totalTimePlanned,
     tssPlanned,

@@ -77,6 +77,28 @@ class ToTPStructureConverter(
         return TPStructureStepDTO.multiStep(workoutStep.repetitions, stepDTOs)
     }
 
+    private fun toIntensityClass(step: SingleStep): String {
+        val name = step.name
+            ?.lowercase()
+            ?.replace(" ", "")
+            ?: ""
+
+        return when {
+            name.contains("warmup") -> "warmUp"
+            name.contains("warm-up") -> "warmUp"
+
+            name.contains("cooldown") -> "coolDown"
+            name.contains("cool-down") -> "coolDown"
+
+            name.contains("recover") -> "rest"
+            name.contains("recovery") -> "rest"
+            name.contains("rest") -> "rest"
+            name.contains("easy") -> "rest"
+
+            else -> "active"
+        }
+    }
+    
     private fun mapToStepDTO(workoutStep: SingleStep): TPStepDTO {
         val mainTarget = toMainTarget(workoutStep.target)
         val cadenceTarget = workoutStep.cadence?.let { TPTargetDTO.cadenceTarget(it.start, it.end) }
@@ -86,6 +108,7 @@ class ToTPStructureConverter(
             workoutStep.name,
             TPLengthDTO.fromStepLength(workoutStep.length),
             targetList,
+            toIntensityClass(workoutStep)
         )
     }
 
