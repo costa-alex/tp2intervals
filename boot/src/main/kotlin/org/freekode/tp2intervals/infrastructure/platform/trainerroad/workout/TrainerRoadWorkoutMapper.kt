@@ -6,6 +6,7 @@ import org.freekode.tp2intervals.domain.workout.Workout
 import org.freekode.tp2intervals.domain.workout.WorkoutDetails
 import org.freekode.tp2intervals.domain.workout.structure.*
 import java.time.Duration
+import kotlin.math.roundToInt
 
 class TrainerRoadWorkoutMapper {
     fun toWorkout(trWorkoutResponseDTO: TRWorkoutResponseDTO, removeHtmlTags: Boolean): Workout {
@@ -20,12 +21,19 @@ class TrainerRoadWorkoutMapper {
     }
 
     fun toWorkoutDetails(detailsDTO: TrainerRoadWorkoutDetailsDTO, removeHtmlTags: Boolean): WorkoutDetails {
+        log.info(
+            "TrainerRoad workout mapped. id={}, name={}, detailsTss={}",
+            detailsDTO.id,
+            detailsDTO.workoutName,
+            detailsDTO.tss
+        )
+        
         return WorkoutDetails(
             if (detailsDTO.isOutside) TrainingType.BIKE else TrainingType.VIRTUAL_BIKE,
             detailsDTO.workoutName,
             getDescription(detailsDTO.workoutDescription, removeHtmlTags),
             Duration.ofMinutes(detailsDTO.duration.toLong()),
-            detailsDTO.tss,
+            detailsDTO.tss?.roundToInt()
             ExternalData.empty().withTrainerRoad(detailsDTO.id)
         )
     }
