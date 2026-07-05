@@ -37,9 +37,9 @@ class CreateTPWorkoutRequestDTO(
                 workoutSubTypeId = 49,
                 title = workout.details.name,
                 description = buildDescription(workout),
-                plannedWorkoutId = null,
+                totalTime = null,
                 totalTimePlanned = workout.details.duration?.toMinutes()?.toDouble()?.div(60),
-                distancePlanned = null,
+                tssActual = null,
                 tssPlanned = workout.details.load,
                 structure = structureStr
             )
