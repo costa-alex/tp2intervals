@@ -17,6 +17,7 @@ class IntervalsEventDTO(
 ) {
 
     fun mapType(): TrainingType = type?.let { IntervalsTrainingTypeMapper.getByIntervalsType(it) } ?: TrainingType.UNKNOWN
+    fun mapSubType(): TrainingType = type?.let { IntervalsTrainingTypeMapper.getByIntervalsType(it) } ?: TrainingType.UNKNOWN
 
     fun mapDuration(): Duration? = moving_time?.let { Duration.ofSeconds(it) }
 
