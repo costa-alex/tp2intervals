@@ -20,6 +20,7 @@ class FromIntervalsWorkoutConverter(
         return Workout(
             WorkoutDetails(
                 eventDTO.mapType(),
+                eventDTO.mapSubType(),
                 eventDTO.name,
                 eventDTO.description,
                 eventDTO.mapDuration(),

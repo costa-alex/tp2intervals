@@ -43,6 +43,7 @@ class TPToWorkoutConverter {
         return Workout(
             WorkoutDetails(
                 tpWorkout.getWorkoutType()!!,
+                tpWorkout.getWorkoutSubType()!!,
                 if (tpWorkout.title.isNullOrBlank()) "Workout" else tpWorkout.title,
                 description,
                 tpWorkout.totalTimePlanned?.let { Duration.ofMinutes((it * 60).toLong()) },

@@ -15,4 +15,5 @@ abstract class TPBaseWorkoutResponseDTO(
     val structure: TPWorkoutStructureDTO?
 ) {
     fun getWorkoutType(): TrainingType? = workoutTypeValueId?.let { TPTrainingTypeMapper.getByValue(it) }
+    fun getWorkoutSubType(): TrainingType? = workoutSubTypeValueId?.let { TPTrainingTypeMapper.getSubtypeByValue(it) }
 }

@@ -26,6 +26,7 @@ class TrainerRoadWorkoutMapper {
     fun toWorkoutDetails(detailsDTO: TrainerRoadWorkoutDetailsDTO, removeHtmlTags: Boolean): WorkoutDetails {
         
         return WorkoutDetails(
+            TrainingType.BIKE,
             if (detailsDTO.isOutside) TrainingType.BIKE else TrainingType.VIRTUAL_BIKE,
             detailsDTO.workoutName,
             getDescription(detailsDTO.workoutDescription, removeHtmlTags),

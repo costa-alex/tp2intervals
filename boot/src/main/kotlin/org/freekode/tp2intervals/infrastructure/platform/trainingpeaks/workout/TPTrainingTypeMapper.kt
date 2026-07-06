@@ -36,6 +36,10 @@ class TPTrainingTypeMapper {
             workoutSubTypeMap[trainingType] ?: workoutSubTypeMap[TrainingType.UNKNOWN]!!
 
         fun getByValue(value: Int): TrainingType =
+            workoutTypeMap.filterValues { it == value }.keys.firstOrNull()
+                ?: TrainingType.UNKNOWN
+                
+        fun getSubtypeByValue(value: Int): TrainingType =
             workoutSubTypeMap.filterValues { it == value }.keys.firstOrNull()
                 ?: TrainingType.UNKNOWN
 
