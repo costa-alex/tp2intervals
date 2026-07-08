@@ -146,7 +146,7 @@ export class NotificationService {
     };
 
     this.snackBar.dismiss();
-    this.snackBar.open(message, 'Close', config);
+    this.snackBar.open(message.trim(), 'Close', config);
   }
 
   private formatCount(count: number, singular: string, plural?: string): string {
