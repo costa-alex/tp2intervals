@@ -10,7 +10,8 @@ import org.freekode.tp2intervals.domain.config.PlatformInfoRepository
 import org.freekode.tp2intervals.domain.config.UpdateConfigurationRequest
 import org.freekode.tp2intervals.infrastructure.PlatformException
 import org.springframework.stereotype.Service
-
+import org.slf4j.LoggerFactory
+import org.springframework.cache.CacheManager
 
 @Service
 class ConfigurationService(
@@ -18,9 +19,11 @@ class ConfigurationService(
     platformInfoRepositories: List<PlatformInfoRepository>,
     private val appConfigurationRepository: AppConfigurationRepository,
     private val debugModeService: DebugModeService,
+    private val cacheManager: CacheManager,
 ) {
     private val platformInfoRepositoryMap = platformInfoRepositories.associateBy { it.platform() }
-
+    private val log = LoggerFactory.getLogger(this.javaClass)
+    
     fun getConfiguration(key: String): String? = appConfigurationRepository.getConfiguration(key)
 
     fun getConfigurations(): AppConfiguration = appConfigurationRepository.getConfigurations()
@@ -31,11 +34,38 @@ class ConfigurationService(
         return errors
     }
 
-    fun platformInfo() =
-        platformInfoRepositoryMap.entries.associate { it.key to it.value.platformInfo() }
+   fun platformInfo(): Map<Platform, PlatformInfo> =
+    platformInfoRepositoryMap.entries.associate { entry ->
+        val platform = entry.key
+        val repository = entry.value
+
+        val info = try {
+            repository.platformInfo()
+        } catch (exception: Exception) {
+            log.warn(
+                "Unable to validate connection to {}",
+                platform.title,
+                exception
+            )
+
+            PlatformInfo(
+                mapOf("isValid" to false)
+            )
+        }
+
+        platform to info
+    }
 
     fun platformInfo(platform: Platform): PlatformInfo {
         return platformInfoRepositoryMap[platform]!!.platformInfo()
+    }
+ 
+    fun refreshPlatformInfo(): Map<Platform, PlatformInfo> {
+        cacheManager
+            .getCache("platformInfoCache")
+            ?.clear()
+
+        return platformInfo()
     }
 
     private fun handleDebugModeIfNecessary(request: UpdateConfigurationRequest) {

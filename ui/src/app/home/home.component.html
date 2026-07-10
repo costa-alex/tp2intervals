@@ -1,8 +1,223 @@
-<p>
-  TP2Intervals helps you copy and sync workouts between <b>TrainerRoad</b>, <b>TrainingPeaks</b>, and <b>Intervals.icu</b>.<br>Use it to move planned workouts, copy library workouts, and keep your training platforms aligned from one simple self-hosted app.
-</p>
-<p>
-  Choose a platform from the menu to get started.
-</p>
+<div class="home-page">
 
+  <section class="home-intro">
+    <h1>TP2Intervals</h1>
 
+    <p>
+      Copy and sync structured workouts between
+      <strong>TrainerRoad</strong>,
+      <strong>TrainingPeaks</strong>, and
+      <strong>Intervals.icu</strong> from one self-hosted application.
+    </p>
+  </section>
+
+  <section class="connections-section">
+
+    <div class="section-header">
+      <div>
+        <h2>Platform connections</h2>
+
+        <p>
+          Check whether the configured credentials can access each platform.
+        </p>
+      </div>
+
+      <button
+        mat-stroked-button
+        type="button"
+        [disabled]="loading"
+        (click)="refreshConnections()">
+
+        <mat-icon [class.refreshing]="loading">
+          refresh
+        </mat-icon>
+
+        Refresh
+      </button>
+    </div>
+
+    @if (loading) {
+      <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+    }
+
+    @if (loadFailed) {
+      <div class="connection-error">
+        <mat-icon>error_outline</mat-icon>
+
+        <div>
+          <strong>Unable to check platform connections.</strong>
+          <p>Check the application logs or try again.</p>
+        </div>
+      </div>
+    }
+
+    <div class="connection-grid">
+
+      @for (platform of platformCards; track platform.key) {
+        <mat-card
+          class="connection-card"
+          [class.connection-card-connected]="isConnected(platform.key)"
+          [class.connection-card-disconnected]="
+            !loading && !isConnected(platform.key)
+          ">
+
+          <mat-card-header>
+            <div
+              mat-card-avatar
+              class="platform-icon">
+
+              <mat-icon>
+                {{ platform.icon }}
+              </mat-icon>
+            </div>
+
+            <mat-card-title>
+              {{ platform.title }}
+            </mat-card-title>
+
+            <mat-card-subtitle>
+              Platform connection
+            </mat-card-subtitle>
+          </mat-card-header>
+
+          <mat-card-content>
+
+            <div
+              class="connection-status"
+              [class.status-connected]="isConnected(platform.key)"
+              [class.status-disconnected]="
+                !loading && !isConnected(platform.key)
+              ">
+
+              <span class="status-dot"></span>
+
+              {{ statusText(platform.key) }}
+            </div>
+
+            <p class="connection-description">
+              {{ statusDescription(platform.key) }}
+            </p>
+
+            @if (
+              platform.key === Platform.TRAINING_PEAKS.key &&
+              isConnected(platform.key)
+            ) {
+              <div class="account-details">
+
+                @if (platformInfo[platform.key]?.isAthlete) {
+                  <span class="detail-badge">
+                    Athlete
+                  </span>
+                } @else {
+                  <span class="detail-badge">
+                    Coach
+                  </span>
+                }
+
+                @if (platformInfo[platform.key]?.isPremium) {
+                  <span class="detail-badge">
+                    Premium
+                  </span>
+                }
+
+              </div>
+            }
+
+          </mat-card-content>
+
+          <mat-card-actions class="card-actions">
+
+            <a
+              mat-button
+              routerLink="/config">
+              Configure
+            </a>
+
+            @if (
+              platform.route &&
+              isConnected(platform.key)
+            ) {
+              <a
+                mat-flat-button
+                color="primary"
+                [routerLink]="platform.route">
+                Open
+              </a>
+            }
+
+          </mat-card-actions>
+
+        </mat-card>
+      }
+
+    </div>
+
+    @if (lastChecked) {
+      <div class="last-checked">
+        Status loaded at {{ lastChecked | date:'HH:mm:ss' }}.
+      </div>
+    }
+
+  </section>
+
+  <section class="sync-routes-section">
+
+    <div class="section-header">
+      <div>
+        <h2>Available syncs</h2>
+
+        <p>
+          Choose one of the supported synchronization directions.
+        </p>
+      </div>
+    </div>
+
+    <div class="sync-route-grid">
+
+      @for (
+        syncRoute of syncRoutes;
+        track syncRoute.sourceKey + '-' + syncRoute.targetKey
+      ) {
+        <div
+          class="sync-route"
+          [class.sync-route-disabled]="
+            !isSyncAvailable(syncRoute)
+          ">
+
+          <div class="sync-route-direction">
+
+            <span class="sync-platform">
+              {{ syncRoute.sourceTitle }}
+            </span>
+
+            <mat-icon>arrow_forward</mat-icon>
+
+            <span class="sync-platform">
+              {{ syncRoute.targetTitle }}
+            </span>
+
+          </div>
+
+          @if (isSyncAvailable(syncRoute)) {
+            <a
+              mat-flat-button
+              color="primary"
+              [routerLink]="syncRoute.route">
+              Open
+            </a>
+          } @else {
+            <a
+              mat-stroked-button
+              routerLink="/config">
+              Configure
+            </a>
+          }
+
+        </div>
+      }
+
+    </div>
+
+  </section>
+
+</div>

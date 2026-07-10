@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.PostMapping
 
 @RestController
 class ConfigurationController(
@@ -48,4 +49,8 @@ class ConfigurationController(
     @GetMapping("/api/configuration/{platform}")
     fun getConfigurations(@PathVariable platform: Platform) =
         configurationService.platformInfo(platform)
+        
+    @PostMapping("/api/configuration/platform/refresh")
+    fun refreshAllPlatformInfo() =
+        configurationService.refreshPlatformInfo()
 }
