@@ -9,6 +9,7 @@ import org.freekode.tp2intervals.rest.workout.DeleteWorkoutRequestDTO
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDate
+import org.freekode.tp2intervals.domain.workout.Workout
 
 @Service
 class WorkoutService(
@@ -25,77 +26,122 @@ class WorkoutService(
             || (source.intervalsId != null && source.intervalsId == target.intervalsId)
     }
     
-    fun copyWorkoutsC2C(request: CopyFromCalendarToCalendarRequest): CopyWorkoutsResponse {
+    private data class SaveWorkoutsResult(
+        val copied: Int,
+        val failures: List<WorkoutSyncFailure>
+    )
+    
+    private fun saveWorkoutsIndividually(
+        repository: WorkoutRepository,
+        workouts: List<Workout>
+    ): SaveWorkoutsResult {
+
+        var copied = 0
+        val failures = mutableListOf<WorkoutSyncFailure>()
+
+        workouts.forEach { workout ->
+            try {
+                repository.saveWorkoutToCalendar(workout)
+                copied++
+            } catch (exception: Exception) {
+                log.error(
+                    "Failed to sync workout '${workout.details.name}' " +
+                        "on ${workout.date}",
+                    exception
+                )
+
+                failures += WorkoutSyncFailure(
+                    workoutName = workout.details.name,
+                    workoutDate = workout.date,
+                    message = exception.message
+                        ?.lineSequence()
+                        ?.firstOrNull()
+                        ?.take(300)
+                        ?: exception.javaClass.simpleName
+                )
+            }
+        }
+
+        return SaveWorkoutsResult(
+            copied = copied,
+            failures = failures
+        )
+    }
+    
+    fun copyWorkoutsC2C(
+        request: CopyFromCalendarToCalendarRequest
+    ): CopyWorkoutsResponse {
+
         log.info("Received request for copy calendar to calendar: $request")
 
-        val sourceWorkoutRepository = workoutRepositoryMap[request.sourcePlatform]!!
-        val targetWorkoutRepository = workoutRepositoryMap[request.targetPlatform]!!
+        val sourceWorkoutRepository =
+            workoutRepositoryMap[request.sourcePlatform]!!
 
-        val allWorkoutsToSync = sourceWorkoutRepository.getWorkoutsFromCalendar(
+        val targetWorkoutRepository =
+            workoutRepositoryMap[request.targetPlatform]!!
+
+        val allWorkouts = sourceWorkoutRepository.getWorkoutsFromCalendar(
             request.startDate,
             request.endDate
         )
 
-        val workoutsAfterTypeFilter = allWorkoutsToSync.filter {
+        val workoutsAfterTypeFilter = allWorkouts.filter {
             request.types.contains(it.details.type)
         }
 
-        val skippedByType = allWorkoutsToSync.size - workoutsAfterTypeFilter.size
+        val skippedByType =
+            allWorkouts.size - workoutsAfterTypeFilter.size
 
-        val workoutsToSync = if (request.skipSynced) {
-            val plannedWorkouts = targetWorkoutRepository.getWorkoutsFromCalendar(
-                request.startDate,
-                request.endDate
-            )
+        val workoutsToSync = if (
+            request.skipSynced &&
+            workoutsAfterTypeFilter.isNotEmpty()
+        ) {
+            val plannedWorkouts =
+                targetWorkoutRepository.getWorkoutsFromCalendar(
+                    request.startDate,
+                    request.endDate
+                )
 
-            val partitionedWorkouts = workoutsAfterTypeFilter.partition { sourceWorkout ->
-                plannedWorkouts.any { targetWorkout ->
+            workoutsAfterTypeFilter.filter { sourceWorkout ->
+                plannedWorkouts.none { targetWorkout ->
                     hasSameExternalId(
                         sourceWorkout.details.externalData,
                         targetWorkout.details.externalData
                     )
                 }
             }
-
-            val alreadySyncedWorkouts = partitionedWorkouts.first
-            val newWorkouts = partitionedWorkouts.second
-
-            log.info(
-                "Copy calendar to calendar filtering result. total={}, skippedByType={}, skippedAlreadySynced={}, copied={}",
-                allWorkoutsToSync.size,
-                skippedByType,
-                alreadySyncedWorkouts.size,
-                newWorkouts.size
-            )
-
-            newWorkouts
         } else {
-            log.info(
-                "Copy calendar to calendar filtering result. total={}, skippedByType={}, skippedAlreadySynced=0, copied={}",
-                allWorkoutsToSync.size,
-                skippedByType,
-                workoutsAfterTypeFilter.size
-            )
-
             workoutsAfterTypeFilter
         }
 
-        val skippedAlreadySynced = workoutsAfterTypeFilter.size - workoutsToSync.size
-        val filteredOut = skippedByType + skippedAlreadySynced
+        val skippedAlreadySynced =
+            workoutsAfterTypeFilter.size - workoutsToSync.size
+
+        val saveResult = saveWorkoutsIndividually(
+            repository = targetWorkoutRepository,
+            workouts = workoutsToSync
+        )
 
         val response = CopyWorkoutsResponse(
-            copied = workoutsToSync.size,
-            filteredOut = filteredOut,
+            copied = saveResult.copied,
+            filteredOut = skippedByType + skippedAlreadySynced,
             skippedByType = skippedByType,
             skippedAlreadySynced = skippedAlreadySynced,
             startDate = request.startDate,
             endDate = request.endDate,
-            externalData = ExternalData.empty()
+            externalData = ExternalData.empty(),
+            failed = saveResult.failures.size,
+            failedWorkouts = saveResult.failures
         )
 
-        targetWorkoutRepository.saveWorkoutsToCalendar(workoutsToSync)
-
-        log.info("Saved workouts to calendar successfully: $response")
+        log.info(
+            "Calendar sync completed. copied={}, skippedByType={}, " +
+                "skippedAlreadySynced={}, failed={}",
+            response.copied,
+            response.skippedByType,
+            response.skippedAlreadySynced,
+            response.failed
+        )
 
         return response
     }

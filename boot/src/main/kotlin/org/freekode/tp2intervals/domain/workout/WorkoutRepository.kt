@@ -6,19 +6,39 @@ import org.freekode.tp2intervals.domain.Platform
 import org.freekode.tp2intervals.domain.librarycontainer.LibraryContainer
 
 interface WorkoutRepository {
+
     fun platform(): Platform
 
-    fun getWorkoutsFromCalendar(startDate: LocalDate, endDate: LocalDate): List<Workout>
+    fun getWorkoutsFromCalendar(
+        startDate: LocalDate,
+        endDate: LocalDate
+    ): List<Workout>
 
-    fun getWorkoutsFromLibrary(libraryContainer: LibraryContainer): List<Workout>
+    fun getWorkoutsFromLibrary(
+        libraryContainer: LibraryContainer
+    ): List<Workout>
 
-    fun getWorkoutFromLibrary(externalData: ExternalData): Workout
+    fun getWorkoutFromLibrary(
+        externalData: ExternalData
+    ): Workout
 
-    fun findWorkoutsFromLibraryByName(name: String): List<WorkoutDetails>
+    fun findWorkoutsFromLibraryByName(
+        name: String
+    ): List<WorkoutDetails>
+
+    fun saveWorkoutToCalendar(workout: Workout) {
+        saveWorkoutsToCalendar(listOf(workout))
+    }
 
     fun saveWorkoutsToCalendar(workouts: List<Workout>)
 
-    fun saveWorkoutsToLibrary(libraryContainer: LibraryContainer, workouts: List<Workout>)
+    fun saveWorkoutsToLibrary(
+        libraryContainer: LibraryContainer,
+        workouts: List<Workout>
+    )
 
-    fun deleteWorkoutsFromCalendar(startDate: LocalDate, endDate: LocalDate)
+    fun deleteWorkoutsFromCalendar(
+        startDate: LocalDate,
+        endDate: LocalDate
+    )
 }

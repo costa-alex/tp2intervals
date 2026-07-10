@@ -2,52 +2,61 @@ package org.freekode.tp2intervals.infrastructure.platform.trainingpeaks.workout
 
 import org.freekode.tp2intervals.domain.TrainingType
 
-class TPTrainingTypeMapper {
-    companion object {
+object TPTrainingTypeMapper {
 
-        private val workoutTypeMap = mapOf(
-            TrainingType.SWIM to 1,
-            TrainingType.BIKE to 2,
-            TrainingType.VIRTUAL_BIKE to 2,
-            TrainingType.MTB to 2,
-            TrainingType.RUN to 3,
-            TrainingType.WALK to 3,
-            TrainingType.WEIGHT to 9,
-            TrainingType.NOTE to 7,
-            TrainingType.UNKNOWN to 100
-        )
+    private val workoutTypeMap = mapOf(
+        TrainingType.SWIM to TPWorkoutType.SWIM,
+        TrainingType.BIKE to TPWorkoutType.BIKE,
+        TrainingType.VIRTUAL_BIKE to TPWorkoutType.BIKE,
+        TrainingType.MTB to TPWorkoutType.BIKE,
+        TrainingType.RUN to TPWorkoutType.RUN,
+        TrainingType.WALK to TPWorkoutType.RUN,
+        TrainingType.WEIGHT to TPWorkoutType.WEIGHT,
+        TrainingType.NOTE to TPWorkoutType.DAY_OFF,
+        TrainingType.UNKNOWN to TPWorkoutType.OTHER
+    )
 
-        private val workoutSubTypeMap = mapOf(
-            TrainingType.SWIM to 1,
-            TrainingType.BIKE to 2,
-            TrainingType.VIRTUAL_BIKE to 49,
-            TrainingType.RUN to 3,
-            TrainingType.MTB to 8,
-            TrainingType.WEIGHT to 9,
-            TrainingType.NOTE to 7,
-            TrainingType.WALK to 13,
-            TrainingType.UNKNOWN to 100
-        )
+    private val workoutSubTypeMap = mapOf(
+        TrainingType.SWIM to TPWorkoutSubType.SWIM,
+        TrainingType.BIKE to TPWorkoutSubType.RIDE,
+        TrainingType.VIRTUAL_BIKE to TPWorkoutSubType.VIRTUAL_RIDE,
+        TrainingType.MTB to TPWorkoutSubType.MOUNTAIN_BIKE,
+        TrainingType.RUN to TPWorkoutSubType.RUN,
+        TrainingType.WALK to TPWorkoutSubType.WALK,
+        TrainingType.WEIGHT to TPWorkoutSubType.WEIGHT,
+        TrainingType.NOTE to TPWorkoutSubType.DAY_OFF,
+        TrainingType.UNKNOWN to TPWorkoutSubType.OTHER
+    )
 
-        fun getWorkoutTypeValueId(trainingType: TrainingType): Int =
-            workoutTypeMap[trainingType] ?: workoutTypeMap[TrainingType.UNKNOWN]!!
+    fun getWorkoutType(
+        trainingType: TrainingType
+    ): TPWorkoutType =
+        workoutTypeMap[trainingType] ?: TPWorkoutType.OTHER
 
-        fun getWorkoutSubTypeValueId(trainingType: TrainingType): Int =
-            workoutSubTypeMap[trainingType] ?: workoutSubTypeMap[TrainingType.UNKNOWN]!!
+    fun getWorkoutSubType(
+        trainingType: TrainingType
+    ): TPWorkoutSubType =
+        workoutSubTypeMap[trainingType] ?: TPWorkoutSubType.OTHER
 
-        fun getByValue(value: Int): TrainingType =
-            workoutTypeMap.filterValues { it == value }.keys.firstOrNull()
-                ?: TrainingType.UNKNOWN
-                
-        fun getSubtypeByValue(value: Int): TrainingType =
-            workoutSubTypeMap.filterValues { it == value }.keys.firstOrNull()
-                ?: TrainingType.UNKNOWN
+    fun getWorkoutTypeValueId(
+        trainingType: TrainingType
+    ): Int =
+        getWorkoutType(trainingType).valueId
 
-        /**
-         * Keep this for backwards compatibility with existing code.
-         * Prefer getWorkoutTypeValueId() or getWorkoutSubTypeValueId().
-         */
-        fun getByType(trainingType: TrainingType): Int =
-            getWorkoutTypeValueId(trainingType)
-    }
+    fun getWorkoutSubTypeValueId(
+        trainingType: TrainingType
+    ): Int =
+        getWorkoutSubType(trainingType).valueId
+
+    fun getByValue(value: Int): TrainingType =
+        workoutTypeMap.entries
+            .firstOrNull { it.value.valueId == value }
+            ?.key
+            ?: TrainingType.UNKNOWN
+
+    fun getSubtypeByValue(value: Int): TrainingType =
+        workoutSubTypeMap.entries
+            .firstOrNull { it.value.valueId == value }
+            ?.key
+            ?: TrainingType.UNKNOWN
 }

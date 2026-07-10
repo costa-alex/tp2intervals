@@ -21,6 +21,14 @@ export class NotificationService {
   ) {
   }
 
+  private normalizeMessage(message: string): string {
+    return message
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
+      .join('\n');
+  }
+
   success(message: string): void {
     this.open(message, 'success');
   }
@@ -37,6 +45,7 @@ export class NotificationService {
     const copied = response.copied ?? 0;
     const skippedByType = response.skippedByType ?? 0;
     const skippedAlreadySynced = response.skippedAlreadySynced ?? 0;
+    const failed = response.failed ?? 0;
 
     const direction = sourcePlatformTitle && targetPlatformTitle
       ? ` from ${sourcePlatformTitle} to ${targetPlatformTitle}`
@@ -46,6 +55,8 @@ export class NotificationService {
 
     if (copied > 0) {
       lines.push(`${this.formatCount(copied, 'workout')} synced${direction}.`);
+    } else if (failed > 0) {
+      lines.push('No workouts were synced.');
     } else if (skippedAlreadySynced > 0 || skippedByType > 0) {
       lines.push('No workouts copied.');
     } else {
@@ -60,6 +71,12 @@ export class NotificationService {
       lines.push(`${this.formatCount(skippedByType, 'workout')} skipped by type filter.`);
     }
 
+    if (failed > 0) {
+      lines.push(
+        `${this.formatCount(failed, 'workout')} failed to sync.`
+      );
+    }
+
     this.success(this.joinLines([
       ...lines,
       this.formatPeriod(response.startDate, response.endDate)
@@ -69,6 +86,7 @@ export class NotificationService {
   copyCalendarToLibraryCompleted(response: any, libraryName?: string): void {
     const copied = response.copied ?? 0;
     const skippedByType = response.skippedByType ?? 0;
+    const failed = response.failed ?? 0;
 
     const destination = libraryName
       ? ` to "${libraryName}"`
@@ -78,14 +96,20 @@ export class NotificationService {
 
     if (copied > 0) {
       lines.push(`${this.formatCount(copied, 'workout')} copied${destination}.`);
-    } else if (skippedByType > 0) {
-      lines.push('No workouts copied.');
+    } else if (failed > 0) {
+      lines.push('No workouts were synced.');
     } else {
       lines.push('No workouts found for the selected period.');
     }
 
     if (skippedByType > 0) {
       lines.push(`${this.formatCount(skippedByType, 'workout')} skipped by type filter.`);
+    }
+
+    if (failed > 0) {
+      lines.push(
+        `${this.formatCount(failed, 'workout')} failed to sync.`
+      );
     }
 
     this.success(this.joinLines([
@@ -146,7 +170,7 @@ export class NotificationService {
     };
 
     this.snackBar.dismiss();
-    this.snackBar.open(message.trim(), 'Close', config);
+    this.snackBar.open(this.normalizeMessage(message), 'Close', config);
   }
 
   private formatCount(count: number, singular: string, plural?: string): string {
@@ -168,6 +192,8 @@ export class NotificationService {
   private joinLines(lines: Array<string | undefined | null>): string {
     return lines
       .filter((line): line is string => !!line)
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
       .join('\n');
   }
 }

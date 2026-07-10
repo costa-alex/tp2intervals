@@ -10,5 +10,7 @@ data class CopyWorkoutsResponse(
     val skippedAlreadySynced: Int,
     val startDate: LocalDate,
     val endDate: LocalDate,
-    val externalData: ExternalData
+    val externalData: ExternalData,
+    val failed: Int = 0,
+    val failedWorkouts: List<WorkoutSyncFailure> = emptyList()
 )

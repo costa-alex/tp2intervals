@@ -116,31 +116,33 @@ class TrainingPeaksWorkoutRepository(
         }
     }
 
-    private fun saveWorkoutToCalendar(workout: Workout) {
-        val createRequest: CreateTPWorkoutRequestDTO
-        val structureStr = if (workout.structure != null) ToTPStructureConverter.toStructureString(objectMapper, workout.structure) else null
-        
-        log.info(
-            "TrainingPeaks structure for workout '{}': {}",
-            workout.details.name,
-            structureStr
-        )
-        
+    override fun saveWorkoutToCalendar(workout: Workout) {
+        val structureStr = workout.structure?.let {
+            ToTPStructureConverter.toStructureString(objectMapper, it)
+        }
+
         val athleteId = trainingPeaksUserRepository.getUser().userId
-        createRequest = CreateTPWorkoutRequestDTO.planWorkout(
-            athleteId, workout, structureStr
+
+        val createRequest = CreateTPWorkoutRequestDTO.planWorkout(
+            athleteId = athleteId,
+            workout = workout,
+            structureStr = structureStr
         )
-        log.debug("Creating TrainingPeaks workout {}, target preview: {}", workout.details.name, targetPreview(workout))
-        log.debug("TrainingPeaks structure preview for {}: {}", workout.details.name, structureStr?.take(600))
-        
+
         log.info(
-            "Creating TP workout '{}'. workoutTypeValueId={}, workoutSubTypeId={}",
-            createRequest.title,
+            "Creating TP workout '{}'. type={}, subType={}, " +
+                "workoutTypeValueId={}, workoutSubTypeId={}",
+            workout.details.name,
+            workout.details.type,
+            workout.details.subType,
             createRequest.workoutTypeValueId,
             createRequest.workoutSubTypeId
         )
-        
-        trainingPeaksApiClient.createAndPlanWorkout(athleteId, createRequest)
+
+        trainingPeaksApiClient.createAndPlanWorkout(
+            athleteId,
+            createRequest
+        )
     }
 
     private fun getWorkoutsFromTPPlan(libraryContainer: LibraryContainer): List<Workout> {

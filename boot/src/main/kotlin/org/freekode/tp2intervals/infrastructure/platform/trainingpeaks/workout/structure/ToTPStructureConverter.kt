@@ -25,6 +25,30 @@ class ToTPStructureConverter(
             .writeValueAsString(structure)
     }
 
+    private fun toIntensityClass(step: SingleStep): TPIntensityClass {
+        val normalizedName = step.name
+            .orEmpty()
+            .lowercase()
+            .replace(Regex("[\\s_-]"), "")
+
+        return when {
+            normalizedName.contains("warmup") ->
+                TPIntensityClass.WARM_UP
+
+            normalizedName.contains("cooldown") ->
+                TPIntensityClass.COOL_DOWN
+
+            normalizedName.contains("recover") ||
+                normalizedName.contains("recovery") ||
+                normalizedName.contains("rest") ||
+                normalizedName.contains("easy") ->
+                TPIntensityClass.REST
+
+            else ->
+                TPIntensityClass.ACTIVE
+        }
+    }
+    
     private fun mapToWorkoutStructure(steps: List<WorkoutStep>): TPWorkoutStructureDTO {
         val stepDTOs = steps.map { mapToStructureStep(it) }
 
@@ -76,28 +100,6 @@ class ToTPStructureConverter(
         val stepDTOs = workoutStep.steps.map { mapToStepDTO(it) }
         return TPStructureStepDTO.multiStep(workoutStep.repetitions, stepDTOs)
     }
-
-    private fun toIntensityClass(step: SingleStep): String {
-        val name = step.name
-            ?.lowercase()
-            ?.replace(" ", "")
-            ?: ""
-
-        return when {
-            name.contains("warmup") -> "warmUp"
-            name.contains("warm-up") -> "warmUp"
-
-            name.contains("cooldown") -> "coolDown"
-            name.contains("cool-down") -> "coolDown"
-
-            name.contains("recover") -> "rest"
-            name.contains("recovery") -> "rest"
-            name.contains("rest") -> "rest"
-            name.contains("easy") -> "rest"
-
-            else -> "active"
-        }
-    }
     
     private fun mapToStepDTO(workoutStep: SingleStep): TPStepDTO {
         val mainTarget = toMainTarget(workoutStep.target)
@@ -108,7 +110,7 @@ class ToTPStructureConverter(
             workoutStep.name,
             TPLengthDTO.fromStepLength(workoutStep.length),
             targetList,
-            toIntensityClass(workoutStep)
+            toIntensityClass(workoutStep).apiValue
         )
     }
 
