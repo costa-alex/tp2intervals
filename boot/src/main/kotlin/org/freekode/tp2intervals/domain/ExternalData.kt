@@ -7,9 +7,10 @@ data class ExternalData(
     val intervalsId: String?,
     val trainerRoadId: String?,
 ) : Serializable {
-    private val externalDataDescriptionSeparator = "//////////"
-
+    
     companion object {
+        const val DESCRIPTION_SEPARATOR = "//////////"
+         
         fun empty() = ExternalData(null, null, null)
     }
 
@@ -27,8 +28,8 @@ data class ExternalData(
             .replace("&nbsp;", " ")
             .replace("&amp;", "&")
 
-        val metadata = if (normalized.contains(externalDataDescriptionSeparator)) {
-            normalized.substringAfter(externalDataDescriptionSeparator)
+        val metadata = if (normalized.contains(DESCRIPTION_SEPARATOR)) {
+            normalized.substringAfter(DESCRIPTION_SEPARATOR)
         } else {
             normalized
         }
@@ -73,7 +74,7 @@ data class ExternalData(
         if (trainerRoadId != null) outList.add("trainerRoadId=$trainerRoadId")
         val simpleString = outList.joinToString(separator = "\n")
         return """
-                $externalDataDescriptionSeparator
+                $DESCRIPTION_SEPARATOR
                 $simpleString
             """.trimIndent()
     }

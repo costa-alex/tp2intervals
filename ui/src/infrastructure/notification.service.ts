@@ -9,7 +9,7 @@ import { BreakpointObserver } from '@angular/cdk/layout';
 
 @Injectable({
   providedIn: 'root'
-})
+}) 
 export class NotificationService {
 
   private static readonly successDuration = 5 * 1000;
@@ -142,7 +142,7 @@ export class NotificationService {
   }
 
   scheduledSyncCreated(): void {
-    this.success('Scheduled sync created. It will run every 20 minutes for today.');
+    this.success('Scheduled sync created. It will run every 60 minutes for today.');
   }
 
   scheduledSyncDeleted(): void {

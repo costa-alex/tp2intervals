@@ -26,6 +26,11 @@ class WorkoutService(
             || (source.intervalsId != null && source.intervalsId == target.intervalsId)
     }
     
+    private data class DeleteWorkoutsResult(
+        val removed: Int,
+        val failures: List<WorkoutSyncFailure>
+    )
+    
     private data class SaveWorkoutsResult(
         val copied: Int,
         val failures: List<WorkoutSyncFailure>
@@ -64,6 +69,43 @@ class WorkoutService(
 
         return SaveWorkoutsResult(
             copied = copied,
+            failures = failures
+        )
+    }
+    
+    private fun deleteWorkoutsIndividually(
+        repository: WorkoutRepository,
+        workouts: List<Workout>
+    ): DeleteWorkoutsResult {
+
+        var removed = 0
+        val failures = mutableListOf<WorkoutSyncFailure>()
+
+        workouts.forEach { workout ->
+            try {
+                repository.deleteWorkoutFromCalendar(workout)
+                removed++
+            } catch (exception: Exception) {
+                log.error(
+                    "Failed to remove replaced workout '${workout.details.name}' " +
+                        "on ${workout.date}",
+                    exception
+                )
+
+                failures += WorkoutSyncFailure(
+                    workoutName = workout.details.name,
+                    workoutDate = workout.date,
+                    message = exception.message
+                        ?.lineSequence()
+                        ?.firstOrNull()
+                        ?.take(300)
+                        ?: exception.javaClass.simpleName
+                )
+            }
+        }
+
+        return DeleteWorkoutsResult(
+            removed = removed,
             failures = failures
         )
     }
@@ -197,5 +239,187 @@ class WorkoutService(
         log.info("Received request to delete workouts from calendar: $request")
         val workoutRepository = workoutRepositoryMap[request.platform]!!
         workoutRepository.deleteWorkoutsFromCalendar(request.startDate, request.endDate)
+    }
+    
+    fun reconcileScheduledTrainerRoadToTrainingPeaks(
+        request: CopyFromCalendarToCalendarRequest
+    ): CopyWorkoutsResponse {
+
+        require(request.sourcePlatform == Platform.TRAINER_ROAD) {
+            "Scheduled reconciliation requires TrainerRoad as source"
+        }
+
+        require(request.targetPlatform == Platform.TRAINING_PEAKS) {
+            "Scheduled reconciliation requires TrainingPeaks as target"
+        }
+
+        log.info(
+            "Starting scheduled TrainerRoad to TrainingPeaks reconciliation: {}",
+            request
+        )
+
+        val sourceRepository =
+            workoutRepositoryMap[request.sourcePlatform]!!
+
+        val targetRepository =
+            workoutRepositoryMap[request.targetPlatform]!!
+
+        val allSourceWorkouts =
+            sourceRepository.getWorkoutsFromCalendar(
+                request.startDate,
+                request.endDate
+            )
+
+        val sourceWorkouts = allSourceWorkouts.filter {
+            request.types.contains(it.details.type)
+        }
+
+        val skippedByType =
+            allSourceWorkouts.size - sourceWorkouts.size
+
+        /*
+        * Important safeguard:
+        * an empty response from TrainerRoad must never cause existing
+        * TrainingPeaks workouts to be deleted.
+        */
+        if (sourceWorkouts.isEmpty()) {
+            log.info(
+                "TrainerRoad returned no matching workouts. " +
+                    "No TrainingPeaks workouts will be removed."
+            )
+
+            return CopyWorkoutsResponse(
+                copied = 0,
+                filteredOut = skippedByType,
+                skippedByType = skippedByType,
+                skippedAlreadySynced = 0,
+                startDate = request.startDate,
+                endDate = request.endDate,
+                externalData = ExternalData.empty()
+            )
+        }
+
+        val sourceWithoutTrainerRoadId = sourceWorkouts.filter {
+            it.details.externalData.trainerRoadId.isNullOrBlank()
+        }
+
+        val validSourceWorkouts = sourceWorkouts.filter {
+            !it.details.externalData.trainerRoadId.isNullOrBlank()
+        }
+
+        val invalidSourceFailures =
+            sourceWithoutTrainerRoadId.map { workout ->
+                WorkoutSyncFailure(
+                    workoutName = workout.details.name,
+                    workoutDate = workout.date,
+                    message = "TrainerRoad workout ID is missing"
+                )
+            }
+
+        val targetWorkouts =
+            targetRepository.getWorkoutsFromCalendar(
+                request.startDate,
+                request.endDate
+            )
+
+        val managedTargetWorkouts = targetWorkouts.filter {
+            isApplicationManagedTrainerRoadWorkout(it)
+        }
+
+        val sourceTrainerRoadIds = validSourceWorkouts
+            .mapNotNull {
+                it.details.externalData.trainerRoadId
+            }
+            .toSet()
+
+        val targetTrainerRoadIds = managedTargetWorkouts
+            .mapNotNull {
+                it.details.externalData.trainerRoadId
+            }
+            .toSet()
+
+        val workoutsToCreate = validSourceWorkouts.filter {
+            it.details.externalData.trainerRoadId !in targetTrainerRoadIds
+        }
+
+        val alreadySynced =
+            validSourceWorkouts.size - workoutsToCreate.size
+
+        val workoutsToRemove = managedTargetWorkouts.filter {
+            it.details.externalData.trainerRoadId !in sourceTrainerRoadIds
+        }
+
+        /*
+        * Create the replacement first.
+        */
+        val saveResult = saveWorkoutsIndividually(
+            repository = targetRepository,
+            workouts = workoutsToCreate
+        )
+
+        val copyFailures =
+            invalidSourceFailures + saveResult.failures
+
+        /*
+        * Do not remove the previous workout if any new workout failed
+        * to be created.
+        */
+        val deleteResult = if (copyFailures.isEmpty()) {
+            deleteWorkoutsIndividually(
+                repository = targetRepository,
+                workouts = workoutsToRemove
+            )
+        } else {
+            log.warn(
+                "Skipping removal of {} replaced workouts because " +
+                    "{} source workouts failed to sync",
+                workoutsToRemove.size,
+                copyFailures.size
+            )
+
+            DeleteWorkoutsResult(
+                removed = 0,
+                failures = emptyList()
+            )
+        }
+
+        val response = CopyWorkoutsResponse(
+            copied = saveResult.copied,
+            filteredOut = skippedByType + alreadySynced,
+            skippedByType = skippedByType,
+            skippedAlreadySynced = alreadySynced,
+            startDate = request.startDate,
+            endDate = request.endDate,
+            externalData = ExternalData.empty(),
+            failed = copyFailures.size,
+            failedWorkouts = copyFailures,
+            removed = deleteResult.removed,
+            failedToRemove = deleteResult.failures.size,
+            failedRemovals = deleteResult.failures
+        )
+
+        log.info(
+            "Scheduled reconciliation completed. copied={}, " +
+                "alreadySynced={}, removed={}, failed={}, failedToRemove={}",
+            response.copied,
+            response.skippedAlreadySynced,
+            response.removed,
+            response.failed,
+            response.failedToRemove
+        )
+
+        return response
+    }
+    
+    private fun isApplicationManagedTrainerRoadWorkout(
+        workout: Workout
+    ): Boolean {
+        val externalData = workout.details.externalData
+
+        return externalData.trainingPeaksId != null &&
+            externalData.trainerRoadId != null &&
+            workout.details.description.contains(
+                ExternalData.DESCRIPTION_SEPARATOR
+            )
     }
 }

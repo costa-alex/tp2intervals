@@ -109,11 +109,13 @@ class TrainingPeaksWorkoutRepository(
         throw PlatformException(Platform.TRAINING_PEAKS, "TP doesn't support workout creation")
     }
 
-    override fun deleteWorkoutsFromCalendar(startDate: LocalDate, endDate: LocalDate) {
-        val userId = trainingPeaksUserRepository.getUser().userId
-        getWorkoutsFromCalendar(startDate, endDate).forEach {
-            trainingPeaksApiClient.deleteWorkout(userId, it.details.externalData.trainingPeaksId!!)
-        }
+    override fun deleteWorkoutsFromCalendar(
+        startDate: LocalDate,
+        endDate: LocalDate
+    ) {
+        getWorkoutsFromCalendar(startDate, endDate)
+            .filter(::isApplicationManagedTrainerRoadWorkout)
+            .forEach(::deleteWorkoutFromCalendar)
     }
 
     override fun saveWorkoutToCalendar(workout: Workout) {
@@ -179,6 +181,54 @@ class TrainingPeaksWorkoutRepository(
             ?.take(8)
             ?.joinToString { "${it.name}:${it.target.start}-${it.target.end}" }
             ?: "no structure"
+    }
+    
+    override fun deleteWorkoutFromCalendar(workout: Workout) {
+        val externalData = workout.details.externalData
+
+        val trainingPeaksId = externalData.trainingPeaksId
+            ?: throw IllegalArgumentException(
+                "Cannot delete workout without TrainingPeaks ID"
+            )
+
+        require(externalData.trainerRoadId != null) {
+            "Refusing to delete a workout without TrainerRoad metadata"
+        }
+
+        require(
+            workout.details.description.contains(
+                ExternalData.DESCRIPTION_SEPARATOR
+            )
+        ) {
+            "Refusing to delete a workout not managed by the application"
+        }
+
+        val userId = trainingPeaksUserRepository.getUser().userId
+
+        log.info(
+            "Deleting application-managed TrainingPeaks workout '{}'. " +
+                "trainingPeaksId={}, trainerRoadId={}",
+            workout.details.name,
+            trainingPeaksId,
+            externalData.trainerRoadId
+        )
+
+        trainingPeaksApiClient.deleteWorkout(
+            userId,
+            trainingPeaksId
+        )
+    }
+    
+    private fun isApplicationManagedTrainerRoadWorkout(
+        workout: Workout
+    ): Boolean {
+        val externalData = workout.details.externalData
+
+        return externalData.trainingPeaksId != null &&
+            externalData.trainerRoadId != null &&
+            workout.details.description.contains(
+                ExternalData.DESCRIPTION_SEPARATOR
+            )
     }
 
 }

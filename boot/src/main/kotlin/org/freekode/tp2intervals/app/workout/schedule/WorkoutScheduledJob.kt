@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.util.concurrent.TimeUnit
+import org.freekode.tp2intervals.domain.Platform
 
 @Service
 class WorkoutScheduledJob(
@@ -30,7 +31,7 @@ class WorkoutScheduledJob(
         scheduleRequestRepository.deleteById(id)
     }
 
-    @Scheduled(fixedRate = 30, timeUnit = TimeUnit.MINUTES)
+    @Scheduled(fixedRate = 60, timeUnit = TimeUnit.MINUTES)
     fun job() {
         val requests = getRequests().map { it.toSchedulable() }
         log.info("Starting processing scheduled requests. There are ${requests.size} requests")
@@ -42,8 +43,22 @@ class WorkoutScheduledJob(
         log.info("Finished processing scheduled requests");
     }
 
-    private fun handleCopyCalendarToCalendarRequest(request: C2CTodayScheduledRequest) {
-        workoutService.copyWorkoutsC2C(request.forToday())
+    private fun handleCopyCalendarToCalendarRequest(
+        request: C2CTodayScheduledRequest
+    ) {
+        val todayRequest = request.forToday()
+
+        if (
+            request.sourcePlatform == Platform.TRAINER_ROAD &&
+            request.targetPlatform == Platform.TRAINING_PEAKS
+        ) {
+            workoutService
+                .reconcileScheduledTrainerRoadToTrainingPeaks(
+                    todayRequest
+                )
+        } else {
+            workoutService.copyWorkoutsC2C(todayRequest)
+        }
     }
 
     private fun ScheduleRequestEntity.toSchedulable(): C2CTodayScheduledRequest {

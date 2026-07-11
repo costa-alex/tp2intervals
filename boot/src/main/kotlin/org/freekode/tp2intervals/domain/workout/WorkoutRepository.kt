@@ -41,4 +41,10 @@ interface WorkoutRepository {
         startDate: LocalDate,
         endDate: LocalDate
     )
+    
+    fun deleteWorkoutFromCalendar(workout: Workout) {
+    throw UnsupportedOperationException(
+        "${platform().title} does not support individual workout deletion"
+    )
+}
 }
