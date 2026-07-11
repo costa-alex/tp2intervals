@@ -436,8 +436,8 @@ class WorkoutService(
 
         return externalData.trainingPeaksId != null &&
             externalData.trainerRoadId != null &&
-            workout.details.description.contains(
+            workout.details.description?.contains(
                 ExternalData.DESCRIPTION_SEPARATOR
-            )
+            ) == true
     }
 }
