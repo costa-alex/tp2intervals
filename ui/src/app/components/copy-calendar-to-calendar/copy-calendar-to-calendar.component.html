@@ -74,46 +74,16 @@
       Only tomorrow
     </button>
   </div>
-  
-  <div *ngIf="scheduleRequests.length > 0" style="margin-bottom: 10px">
-    <mat-list>
-      <mat-list-item>
-        Scheduled jobs
-      </mat-list-item>
-      <mat-divider></mat-divider>
-      @for (request of scheduleRequests; track request) {
-        <mat-list-item>
-          <button
-            mat-raised-button
-            color="primary"
-            type="button"
-            (click)="deleteJob(request.id)">
-            <i class="bi bi-trash"></i>
-          </button>
-          Types: {{ mapTrainingTypesToTitles(request.request.types) }},
-          Skip synced: {{ request.request.skipSynced }},
-          {{ Platform.getTitle(request.request.sourcePlatform) }} -> {{ Platform.getTitle(request.request.targetPlatform) }}
-        </mat-list-item>
-      }
-    </mat-list>
-  </div>
 
-  <div class="action-button-section action-grid single-action">
-    <button
-      mat-raised-button
-      color="primary"
-      type="button"
-      class="schedule-button"
-      matTooltip="Beta feature. Scheduled job runs every 60 minutes and will sync workouts for today. Jobs won't persist after app restart."
-      [disabled]="formGroup.invalid || inProgress"
-      (click)="scheduleToday()">
+  <div class="automation-link">
+    <a
+      mat-stroked-button
+      routerLink="/automation">
 
-      <span class="schedule-button-content">
-        <span>Schedule for today</span>
-        <span class="beta-badge">Beta</span>
-      </span>
+      <mat-icon>schedule</mat-icon>
+      Manage scheduled syncs
 
-    </button>
+    </a>
   </div>
 
   <mat-progress-bar *ngIf="inProgress" mode="query" style="margin-top: 10px"></mat-progress-bar>

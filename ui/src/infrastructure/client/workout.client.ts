@@ -2,6 +2,38 @@ import {Injectable} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
 import {Observable} from 'rxjs';
 
+export interface ScheduledSync {
+  id: number;
+  types: string[];
+  skipSynced: boolean;
+  sourcePlatform: string;
+  targetPlatform: string;
+}
+
+export interface SyncExecution {
+  id: number;
+  scheduleId?: number;
+  triggerType: 'MANUAL' | 'SCHEDULED' | 'RUN_NOW';
+  sourcePlatform: string;
+  targetPlatform: string;
+  startDate: string;
+  endDate: string;
+  startedAt: string;
+  finishedAt?: string;
+  status:
+    | 'RUNNING'
+    | 'SUCCESS'
+    | 'NO_CHANGES'
+    | 'PARTIAL_SUCCESS'
+    | 'FAILED';
+  copied: number;
+  removed: number;
+  skippedByType: number;
+  skippedAlreadySynced: number;
+  failed: number;
+  failedToRemove: number;
+  errorMessage?: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -49,22 +81,46 @@ export class WorkoutClient {
     return this.httpClient.get(`/api/workout/find`, {params: {platform, name}})
   }
 
-  scheduleCopyCalendarToCalendar(startDate, endDate, types, skipSynced, platformDirection): Observable<any> {
-    return this.httpClient
-      .post(`/api/workout/copy-calendar-to-calendar/schedule`, {
-        startDate,
-        endDate,
+  scheduleCopyCalendarToCalendar(
+    types: string[],
+    skipSynced: boolean,
+    platformDirection: {
+      sourcePlatform: string;
+      targetPlatform: string;
+    }
+  ): Observable<void> {
+    return this.httpClient.post<void>(
+      '/api/workout/copy-calendar-to-calendar/schedule',
+      {
         types,
         skipSynced,
         ...platformDirection
-      })
+      }
+    );
   }
 
-  getScheduleRequests(): Observable<any> {
-    return this.httpClient.get(`/api/workout/copy-calendar-to-calendar/schedule`)
+  getScheduleRequests(): Observable<ScheduledSync[]> {
+    return this.httpClient.get<ScheduledSync[]>(
+      '/api/workout/copy-calendar-to-calendar/schedule'
+    );
   }
 
-  deleteScheduleRequest(id: any) {
-    return this.httpClient.delete(`/api/workout/copy-calendar-to-calendar/schedule/${id}`)
+  runScheduleRequest(id: number): Observable<any> {
+    return this.httpClient.post(
+      `/api/workout/copy-calendar-to-calendar/schedule/${id}/run`,
+      {}
+    );
+  }
+
+  deleteScheduleRequest(id: number): Observable<void> {
+    return this.httpClient.delete<void>(
+      `/api/workout/copy-calendar-to-calendar/schedule/${id}`
+    );
+  }
+
+  getSyncExecutions(): Observable<SyncExecution[]> {
+    return this.httpClient.get<SyncExecution[]>(
+      '/api/sync-executions'
+    );
   }
 }

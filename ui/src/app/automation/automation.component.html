@@ -1,0 +1,268 @@
+<div class="automation-page">
+
+  <section class="page-header">
+    <h1>Automation</h1>
+
+    <p>
+      Configure recurring workout synchronizations. Scheduled syncs
+      currently run every 60 minutes for the current day.
+    </p>
+  </section>
+
+  @if (loading) {
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  }
+
+  <section class="automation-section">
+    <h2>Create scheduled sync</h2>
+
+    <mat-card class="configuration-card">
+      <mat-card-content>
+
+        <form
+          [formGroup]="formGroup"
+          class="schedule-form">
+
+          <mat-form-field>
+            <mat-label>Direction</mat-label>
+
+            <mat-select formControlName="direction">
+              @for (direction of directions; track direction.title) {
+                <mat-option [value]="direction.value">
+                  {{ direction.title }}
+                </mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field>
+            <mat-label>Workout types</mat-label>
+
+            <mat-select
+              formControlName="trainingTypes"
+              multiple>
+
+              @for (type of trainingTypes; track type.value) {
+                <mat-option [value]="type.value">
+                  {{ type.title }}
+                </mat-option>
+              }
+
+            </mat-select>
+          </mat-form-field>
+
+          <mat-checkbox formControlName="skipSynced">
+            Skip already synced workouts
+          </mat-checkbox>
+
+          <button
+            mat-flat-button
+            color="primary"
+            type="button"
+            [disabled]="formGroup.invalid || loading"
+            (click)="createSchedule()">
+
+            <mat-icon>add</mat-icon>
+            Create schedule
+
+          </button>
+
+        </form>
+
+      </mat-card-content>
+    </mat-card>
+  </section>
+
+  <section class="automation-section">
+    <h2>Scheduled syncs</h2>
+
+    @if (schedules.length === 0 && !loading) {
+      <div class="empty-state">
+        <mat-icon>schedule</mat-icon>
+
+        <div>
+          <strong>No scheduled syncs</strong>
+          <p>Create a schedule using the form above.</p>
+        </div>
+      </div>
+    }
+
+    <div class="schedule-grid">
+
+      @for (schedule of schedules; track schedule.id) {
+        <mat-card class="schedule-card">
+
+          <mat-card-header>
+            <div
+              mat-card-avatar
+              class="schedule-icon">
+              <mat-icon>sync</mat-icon>
+            </div>
+
+            <mat-card-title>
+              {{ directionTitle(schedule) }}
+            </mat-card-title>
+
+            <mat-card-subtitle>
+              Every 60 minutes · Current day
+            </mat-card-subtitle>
+          </mat-card-header>
+
+          <mat-card-content>
+
+            <div class="schedule-detail">
+              <span class="detail-label">Workout types</span>
+              <span>{{ trainingTypeTitles(schedule.types) }}</span>
+            </div>
+
+            <div class="schedule-detail">
+              <span class="detail-label">Skip synced</span>
+              <span>
+                {{ schedule.skipSynced ? 'Yes' : 'No' }}
+              </span>
+            </div>
+
+            @if (
+              schedule.sourcePlatform === Platform.TRAINER_ROAD.key &&
+              schedule.targetPlatform === Platform.TRAINING_PEAKS.key
+            ) {
+              <div class="schedule-detail">
+                <span class="detail-label">
+                  Replace changed workouts
+                </span>
+                <span>Yes</span>
+              </div>
+            }
+
+          </mat-card-content>
+
+          <mat-card-actions class="schedule-actions">
+
+            <button
+              mat-stroked-button
+              type="button"
+              [disabled]="loading"
+              (click)="runNow(schedule)">
+
+              <mat-icon>play_arrow</mat-icon>
+              Run now
+
+            </button>
+
+            <button
+              mat-button
+              type="button"
+              class="delete-button"
+              [disabled]="loading"
+              (click)="deleteSchedule(schedule)">
+
+              <mat-icon>delete_outline</mat-icon>
+              Delete
+
+            </button>
+
+          </mat-card-actions>
+
+        </mat-card>
+      }
+
+    </div>
+  </section>
+
+  <section class="automation-section">
+    <h2>Sync history</h2>
+
+    @if (executions.length === 0 && !loading) {
+      <div class="empty-state">
+        <mat-icon>history</mat-icon>
+
+        <div>
+          <strong>No synchronization history</strong>
+          <p>
+            Manual and scheduled synchronizations will appear here.
+          </p>
+        </div>
+      </div>
+    }
+
+    <div class="history-list">
+      @for (execution of executions; track execution.id) {
+        <mat-card class="history-card">
+          <mat-card-content>
+
+            <div class="history-header">
+              <div>
+                <strong>
+                  {{ executionDirectionTitle(execution) }}
+                </strong>
+
+                <div class="history-meta">
+                  {{ execution.startedAt | date:'dd MMM yyyy, HH:mm' }}
+                  · {{ triggerTitle(execution.triggerType) }}
+                </div>
+              </div>
+
+              <span
+                class="execution-status"
+                [class.status-success]="execution.status === 'SUCCESS'"
+                [class.status-no-changes]="execution.status === 'NO_CHANGES'"
+                [class.status-partial]="execution.status === 'PARTIAL_SUCCESS'"
+                [class.status-failed]="execution.status === 'FAILED'"
+                [class.status-running]="execution.status === 'RUNNING'">
+
+                {{ statusTitle(execution.status) }}
+
+              </span>
+            </div>
+
+            <div class="history-period">
+              <span class="detail-label">Period</span>
+
+              <span>
+                {{ execution.startDate | date:'dd MMM yyyy':'UTC' }}
+
+                @if (execution.startDate !== execution.endDate) {
+                  →
+                  {{ execution.endDate | date:'dd MMM yyyy':'UTC' }}
+                }
+              </span>
+            </div>
+
+            <div class="history-results">
+              <span>{{ execution.copied }} copied</span>
+              <span>{{ execution.removed }} removed</span>
+
+              <span>
+                {{ execution.skippedAlreadySynced }} already synced
+              </span>
+
+              @if (execution.failed > 0) {
+                <span>{{ execution.failed }} failed</span>
+              }
+
+              @if (execution.failedToRemove > 0) {
+                <span>
+                  {{ execution.failedToRemove }} removal failures
+                </span>
+              }
+
+              @if (execution.skippedByType > 0) {
+                <span>
+                  {{ execution.skippedByType }} skipped by type
+                </span>
+              }
+            </div>
+
+            @if (execution.errorMessage) {
+              <div class="history-error">
+                {{ execution.errorMessage }}
+              </div>
+            }
+
+          </mat-card-content>
+        </mat-card>
+      }
+    </div>
+  </section>
+
+</div>

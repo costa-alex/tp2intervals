@@ -4,6 +4,8 @@ services:
     image: ghcr.io/costa-alex/tp2intervals:latest
     container_name: tp2intervals
     restart: unless-stopped
+    environment:
+      JAVA_TOOL_OPTIONS: "-Duser.timezone=Europe/Lisbon"
     ports:
       - "8098:8080"
     volumes:

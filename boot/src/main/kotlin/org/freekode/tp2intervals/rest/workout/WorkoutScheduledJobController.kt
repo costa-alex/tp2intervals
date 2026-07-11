@@ -13,16 +13,34 @@ import org.springframework.web.bind.annotation.RestController
 class WorkoutScheduledJobController(
     private val workoutScheduledJob: WorkoutScheduledJob
 ) {
-    @PostMapping("/api/workout/copy-calendar-to-calendar/schedule")
-    fun scheduleC2CTodayRequest(@RequestBody request: C2CTodayScheduledRequest) {
+    @PostMapping(
+        "/api/workout/copy-calendar-to-calendar/schedule"
+    )
+    fun scheduleC2CTodayRequest(
+        @RequestBody request: C2CTodayScheduledRequest
+    ) {
         workoutScheduledJob.addRequest(request)
     }
 
-    @GetMapping("/api/workout/copy-calendar-to-calendar/schedule")
+    @GetMapping(
+        "/api/workout/copy-calendar-to-calendar/schedule"
+    )
     fun getScheduleRequests() =
         workoutScheduledJob.getRequests()
 
-    @DeleteMapping("/api/workout/copy-calendar-to-calendar/schedule/{id}")
-    fun deleteScheduleRequest(@PathVariable id: Int) =
+    @PostMapping(
+        "/api/workout/copy-calendar-to-calendar/schedule/{id}/run"
+    )
+    fun runScheduleRequest(
+        @PathVariable id: Int
+    ) = workoutScheduledJob.runRequest(id)
+
+    @DeleteMapping(
+        "/api/workout/copy-calendar-to-calendar/schedule/{id}"
+    )
+    fun deleteScheduleRequest(
+        @PathVariable id: Int
+    ) {
         workoutScheduledJob.deleteRequest(id)
+    }
 }

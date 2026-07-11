@@ -11,17 +11,14 @@ import {MatSelectModule} from "@angular/material/select";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {Platform} from "infrastructure/platform";
 import {formatDate} from "utils/date-formatter";
-import {MatDividerModule} from "@angular/material/divider";
-import {MatListModule} from "@angular/material/list";
 import {NgIf} from "@angular/common";
 import {ConfigurationClient} from "infrastructure/client/configuration.client";
-import {finalize, switchMap, tap} from "rxjs";
+import {finalize} from "rxjs";
 import {WorkoutClient} from "infrastructure/client/workout.client";
 import {NotificationService} from "infrastructure/notification.service";
 import {MatTooltipModule} from "@angular/material/tooltip";
-import {TrainingTypes} from "infrastructure/training-types";
 import { MatIconModule } from '@angular/material/icon';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'copy-calendar-to-calendar',
@@ -38,11 +35,10 @@ import { ActivatedRoute } from '@angular/router';
     MatSnackBarModule,
     MatSelectModule,
     MatCheckboxModule,
-    MatDividerModule,
-    MatListModule,
     NgIf,
     MatTooltipModule,
-    MatIconModule
+    MatIconModule,
+    RouterLink
   ],
   templateUrl: './copy-calendar-to-calendar.component.html',
   styleUrl: './copy-calendar-to-calendar.component.scss'
@@ -59,7 +55,6 @@ export class CopyCalendarToCalendarComponent implements OnInit {
 
   formGroup: FormGroup
   platformsInfo: any
-  scheduleRequests: any[] = []
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -75,7 +70,6 @@ export class CopyCalendarToCalendarComponent implements OnInit {
       this.platformsInfo = value
     })
     this.formGroup = this.getFormGroup();
-    this.loadScheduleRequests().subscribe()
     this.applyDirectionFromQueryParams();
   }
 
@@ -105,26 +99,6 @@ export class CopyCalendarToCalendarComponent implements OnInit {
     this.copyWorkoutsForOneDay(
       formatDate(this.tomorrowDate)
     );
-  }
-
-  scheduleToday() {
-    let startDate = null
-    let endDate = null
-    let direction = this.formGroup.value.direction
-    let trainingTypes = this.formGroup.value.trainingTypes
-    let skipSynced = this.formGroup.value.skipSynced
-
-    this.inProgress = true
-    this.workoutClient.scheduleCopyCalendarToCalendar(startDate, endDate, trainingTypes, skipSynced, direction).pipe(
-      switchMap(() => this.loadScheduleRequests()),
-      finalize(() => this.inProgress = false)
-    ).subscribe(() => {
-      this.notificationService.scheduledSyncCreated()
-    })
-  }
-
-  mapTrainingTypesToTitles(values) {
-    return values.map(value => TrainingTypes.getTitle(value))
   }
 
   private copyWorkoutsForOneDay(date: string): void {
@@ -179,28 +153,6 @@ export class CopyCalendarToCalendarComponent implements OnInit {
       startDate: [this.todayDate, Validators.required],
       endDate: [this.tomorrowDate, Validators.required],
       skipSynced: [true, Validators.required],
-    })
-  }
-
-  private loadScheduleRequests() {
-    return this.workoutClient.getScheduleRequests().pipe(
-      tap(values => {
-          this.scheduleRequests = values.map(value => {
-            return {id: value.id, request: JSON.parse(value.requestJson)}
-          })
-          console.log(this.scheduleRequests)
-        }
-      )
-    )
-  }
-
-  deleteJob(jobId: any) {
-    this.inProgress = true
-    this.workoutClient.deleteScheduleRequest(jobId).pipe(
-      switchMap(() => this.loadScheduleRequests()),
-      finalize(() => this.inProgress = false)
-    ).subscribe(() => {
-      this.notificationService.scheduledSyncDeleted()
     })
   }
 

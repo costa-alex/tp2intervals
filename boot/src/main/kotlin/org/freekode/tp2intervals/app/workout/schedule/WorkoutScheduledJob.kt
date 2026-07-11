@@ -1,56 +1,116 @@
 package org.freekode.tp2intervals.app.workout.schedule
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.freekode.tp2intervals.app.workout.WorkoutService
+import org.freekode.tp2intervals.app.workout.CopyWorkoutsResponse
 import org.freekode.tp2intervals.infrastructure.schedule.ScheduleRequestEntity
 import org.freekode.tp2intervals.infrastructure.schedule.ScheduleRequestRepository
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 import java.util.concurrent.TimeUnit
+import org.freekode.tp2intervals.app.workout.execution.SyncExecutionService
+import org.freekode.tp2intervals.app.workout.execution.SyncExecutionTrigger
 
 @Service
 class WorkoutScheduledJob(
-    private val workoutService: WorkoutService,
+    private val syncExecutionService: SyncExecutionService,
     private val scheduleRequestRepository: ScheduleRequestRepository,
     private val objectMapper: ObjectMapper
 ) {
     private val log = LoggerFactory.getLogger(this.javaClass)
 
-    fun addRequest(schedulable: Schedulable) {
-        val requestJson = objectMapper.writeValueAsString(schedulable)
-        if (scheduleRequestRepository.findByRequestJson(requestJson) != null) throw IllegalArgumentException("Request already exists")
-        scheduleRequestRepository.save(ScheduleRequestEntity(requestJson))
-    }
+    fun addRequest(request: C2CTodayScheduledRequest) {
+        val requestJson = objectMapper.writeValueAsString(request)
 
-    fun getRequests() =
-        scheduleRequestRepository.findAll().toList()
-
-    fun deleteRequest(id: Int) {
-        scheduleRequestRepository.deleteById(id)
-    }
-
-    @Scheduled(fixedRate = 60, timeUnit = TimeUnit.MINUTES)
-    fun job() {
-        val requests = getRequests().map { it.toSchedulable() }
-        log.info("Starting processing scheduled requests. There are ${requests.size} requests")
-
-        for (request in requests) {
-            handleCopyCalendarToCalendarRequest(request)
+        require(
+            scheduleRequestRepository.findByRequestJson(requestJson) == null
+        ) {
+            "This scheduled sync already exists"
         }
 
-        log.info("Finished processing scheduled requests");
-    }
-
-    private fun handleCopyCalendarToCalendarRequest(
-        request: C2CTodayScheduledRequest
-    ) {
-        workoutService.copyWorkoutsC2C(
-            request.forToday()
+        scheduleRequestRepository.save(
+            ScheduleRequestEntity(requestJson)
         )
     }
 
-    private fun ScheduleRequestEntity.toSchedulable(): C2CTodayScheduledRequest {
-        return objectMapper.readValue(requestJson, C2CTodayScheduledRequest::class.java)
+    fun getRequests(): List<ScheduledSyncResponse> =
+        scheduleRequestRepository
+            .findAll()
+            .map { entity ->
+                val request = entity.toSchedulable()
+
+                ScheduledSyncResponse(
+                    id = requireNotNull(entity.id),
+                    types = request.types,
+                    skipSynced = request.skipSynced,
+                    sourcePlatform = request.sourcePlatform,
+                    targetPlatform = request.targetPlatform
+                )
+            }
+
+    fun deleteRequest(id: Int) {
+        require(scheduleRequestRepository.existsById(id)) {
+            "Scheduled sync $id does not exist"
+        }
+
+        scheduleRequestRepository.deleteById(id)
+    }
+
+    fun runRequest(id: Int): CopyWorkoutsResponse {
+        val entity = scheduleRequestRepository
+            .findById(id)
+            .orElseThrow {
+                IllegalArgumentException(
+                    "Scheduled sync $id does not exist"
+                )
+            }
+
+        return syncExecutionService.execute(
+            request = entity.toSchedulable().forToday(),
+            trigger = SyncExecutionTrigger.RUN_NOW,
+            scheduleId = entity.id
+        )
+    }
+
+    @Scheduled(
+        fixedRate = 60,
+        timeUnit = TimeUnit.MINUTES
+    )
+    fun job() {
+        val requests = scheduleRequestRepository
+            .findAll()
+            .toList()
+
+        log.info(
+            "Starting scheduled sync processing. requests={}",
+            requests.size
+        )
+
+        requests.forEach { entity ->
+            try {
+                syncExecutionService.execute(
+                    request = entity.toSchedulable().forToday(),
+                    trigger = SyncExecutionTrigger.SCHEDULED,
+                    scheduleId = entity.id
+                )
+            } catch (exception: Exception) {
+                log.error(
+                    "Scheduled sync {} failed",
+                    entity.id,
+                    exception
+                )
+            }
+        }
+
+        log.info("Finished scheduled sync processing")
+    }
+
+    private fun ScheduleRequestEntity.toSchedulable():
+        C2CTodayScheduledRequest {
+
+        return objectMapper.readValue(
+            requireNotNull(requestJson),
+            C2CTodayScheduledRequest::class.java
+        )
     }
 }

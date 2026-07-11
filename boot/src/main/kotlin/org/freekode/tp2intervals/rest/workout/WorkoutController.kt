@@ -12,14 +12,22 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import org.freekode.tp2intervals.app.workout.execution.SyncExecutionService
+import org.freekode.tp2intervals.app.workout.execution.SyncExecutionTrigger
 
 @RestController
 class WorkoutController(
     private val workoutService: WorkoutService,
+    private val syncExecutionService: SyncExecutionService,
 ) {
     @PostMapping("/api/workout/copy-calendar-to-calendar")
-    fun copyWorkoutsFromCalendarToCalendar(@RequestBody request: CopyFromCalendarToCalendarRequest): CopyWorkoutsResponse {
-        return workoutService.copyWorkoutsC2C(request)
+    fun copyWorkoutsFromCalendarToCalendar(
+        @RequestBody request: CopyFromCalendarToCalendarRequest
+    ): CopyWorkoutsResponse {
+        return syncExecutionService.execute(
+            request = request,
+            trigger = SyncExecutionTrigger.MANUAL
+        )
     }
 
     @PostMapping("/api/workout/copy-calendar-to-library")

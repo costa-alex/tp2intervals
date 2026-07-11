@@ -38,9 +38,26 @@ export class AppComponent implements OnInit {
 
   menuButtons = [
     { icon: 'home', name: 'Home', url: '/home' },
-    { icon: 'directions_bike', name: 'TrainerRoad', url: '/trainer-road' },
-    { icon: 'timeline', name: 'TrainingPeaks', url: '/training-peaks' },
-    { icon: 'settings', name: 'Configuration', url: '/config' }
+    {
+      icon: 'directions_bike',
+      name: 'TrainerRoad',
+      url: '/trainer-road'
+    },
+    {
+      icon: 'timeline',
+      name: 'TrainingPeaks',
+      url: '/training-peaks'
+    },
+    {
+      icon: 'schedule',
+      name: 'Automation',
+      url: '/automation'
+    },
+    {
+      icon: 'settings',
+      name: 'Configuration',
+      url: '/config'
+    }
   ];
 
   constructor(

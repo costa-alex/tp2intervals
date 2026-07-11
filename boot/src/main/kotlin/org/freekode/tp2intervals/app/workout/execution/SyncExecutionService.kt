@@ -1,0 +1,109 @@
+package org.freekode.tp2intervals.app.workout.execution
+
+import org.freekode.tp2intervals.app.workout.CopyFromCalendarToCalendarRequest
+import org.freekode.tp2intervals.app.workout.CopyWorkoutsResponse
+import org.freekode.tp2intervals.app.workout.WorkoutService
+import org.freekode.tp2intervals.infrastructure.sync.SyncExecutionEntity
+import org.freekode.tp2intervals.infrastructure.sync.SyncExecutionRepository
+import org.springframework.stereotype.Service
+import java.time.LocalDateTime
+
+@Service
+class SyncExecutionService(
+    private val workoutService: WorkoutService,
+    private val syncExecutionRepository: SyncExecutionRepository
+) {
+
+    fun execute(
+        request: CopyFromCalendarToCalendarRequest,
+        trigger: SyncExecutionTrigger,
+        scheduleId: Int? = null
+    ): CopyWorkoutsResponse {
+
+        val execution = syncExecutionRepository.save(
+            SyncExecutionEntity(
+                scheduleId = scheduleId,
+                triggerType = trigger,
+                sourcePlatform = request.sourcePlatform,
+                targetPlatform = request.targetPlatform,
+                startDate = request.startDate,
+                endDate = request.endDate,
+                startedAt = LocalDateTime.now(),
+                status = SyncExecutionStatus.RUNNING
+            )
+        )
+
+        try {
+            val response =
+                workoutService.copyWorkoutsC2C(request)
+
+            execution.finishedAt = LocalDateTime.now()
+            execution.copied = response.copied
+            execution.removed = response.removed
+            execution.skippedByType = response.skippedByType
+            execution.skippedAlreadySynced =
+                response.skippedAlreadySynced
+            execution.failed = response.failed
+            execution.failedToRemove =
+                response.failedToRemove
+            execution.errorMessage = (
+                response.failedWorkouts.map { failure ->
+                    "${failure.workoutName}: ${failure.message}"
+                } +
+                    response.failedRemovals.map { failure ->
+                        "${failure.workoutName}: ${failure.message}"
+                    }
+                )
+                .takeIf { it.isNotEmpty() }
+                ?.joinToString("\n")
+                ?.take(2000)
+            execution.status = determineStatus(response)
+
+            syncExecutionRepository.save(execution)
+
+            return response
+        } catch (exception: Exception) {
+            execution.finishedAt = LocalDateTime.now()
+            execution.status = SyncExecutionStatus.FAILED
+            execution.errorMessage = exception.message
+                ?.take(2000)
+                ?: exception.javaClass.simpleName
+
+            syncExecutionRepository.save(execution)
+
+            throw exception
+        }
+    }
+
+    fun getRecentExecutions(): List<SyncExecutionResponse> =
+        syncExecutionRepository
+            .findTop50ByOrderByStartedAtDesc()
+            .map(SyncExecutionResponse::fromEntity)
+
+    private fun determineStatus(
+        response: CopyWorkoutsResponse
+    ): SyncExecutionStatus {
+
+        val hasFailures =
+            response.failed > 0 ||
+                response.failedToRemove > 0
+
+        val hasSuccessfulChanges =
+            response.copied > 0 ||
+                response.removed > 0
+
+        return when {
+            hasFailures && !hasSuccessfulChanges ->
+                SyncExecutionStatus.FAILED
+
+            hasFailures ->
+                SyncExecutionStatus.PARTIAL_SUCCESS
+
+            !hasSuccessfulChanges ->
+                SyncExecutionStatus.NO_CHANGES
+
+            else ->
+                SyncExecutionStatus.SUCCESS
+        }
+    }
+}
