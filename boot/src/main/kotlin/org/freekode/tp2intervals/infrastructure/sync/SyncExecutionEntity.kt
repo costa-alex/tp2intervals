@@ -13,6 +13,7 @@ import org.freekode.tp2intervals.app.workout.execution.SyncExecutionTrigger
 import org.freekode.tp2intervals.domain.Platform
 import java.time.LocalDateTime
 import java.time.LocalDate
+import jakarta.persistence.Convert
 
 @Entity
 @Table(name = "sync_executions")
@@ -36,9 +37,15 @@ class SyncExecutionEntity(
     @Column(name = "target_platform", nullable = false)
     var targetPlatform: Platform,
 
+    @Convert(
+        converter = LocalDateTimeStringConverter::class
+    )
     @Column(name = "started_at", nullable = false)
     var startedAt: LocalDateTime,
 
+    @Convert(
+        converter = LocalDateTimeStringConverter::class
+    )
     @Column(name = "finished_at")
     var finishedAt: LocalDateTime? = null,
 
