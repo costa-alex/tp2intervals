@@ -79,18 +79,32 @@ export class CopyCalendarToCalendarComponent implements OnInit {
     this.applyDirectionFromQueryParams();
   }
 
-  submit() {
-    let startDate = formatDate(this.formGroup.controls['startDate'].value)
-    let endDate = formatDate(this.formGroup.controls['endDate'].value)
-    this.copyWorkouts(startDate, endDate);
+  submit(): void {
+    const startDate = formatDate(
+      this.formGroup.controls['startDate'].value
+    );
+
+    const endDate = formatDate(
+      this.formGroup.controls['endDate'].value
+    );
+
+    this.copyWorkouts(
+      startDate,
+      endDate,
+      false
+    );
   }
 
-  today() {
-    this.copyWorkoutsForOneDay(formatDate(this.todayDate));
+  today(): void {
+    this.copyWorkoutsForOneDay(
+      formatDate(this.todayDate)
+    );
   }
 
-  tomorrow() {
-    this.copyWorkoutsForOneDay(formatDate(this.tomorrowDate));
+  tomorrow(): void {
+    this.copyWorkoutsForOneDay(
+      formatDate(this.tomorrowDate)
+    );
   }
 
   scheduleToday() {
@@ -113,25 +127,49 @@ export class CopyCalendarToCalendarComponent implements OnInit {
     return values.map(value => TrainingTypes.getTitle(value))
   }
 
-  private copyWorkoutsForOneDay(date) {
-    this.copyWorkouts(date, date)
+  private copyWorkoutsForOneDay(date: string): void {
+    this.copyWorkouts(
+      date,
+      date,
+      true
+    );
   }
 
-  private copyWorkouts(startDate, endDate) {
-    let direction = this.formGroup.value.direction
-    let trainingTypes = this.formGroup.value.trainingTypes
-    let skipSynced = this.formGroup.value.skipSynced
+  private copyWorkouts(
+    startDate: string,
+    endDate: string,
+    reconcileChangedWorkouts = false
+  ): void {
+    const direction = this.formGroup.value.direction;
+    const trainingTypes = this.formGroup.value.trainingTypes;
+    const skipSynced = this.formGroup.value.skipSynced;
 
-    this.inProgress = true
-    this.workoutClient.copyCalendarToCalendar(startDate, endDate, trainingTypes, skipSynced, direction).pipe(
-      finalize(() => this.inProgress = false)
-    ).subscribe((response) => {
-      this.notificationService.copyCalendarToCalendarCompleted(
-        response,
-        Platform.getTitle(direction.sourcePlatform),
-        Platform.getTitle(direction.targetPlatform)
+    const replaceChangedWorkouts =
+      reconcileChangedWorkouts &&
+      direction.sourcePlatform === Platform.TRAINER_ROAD.key &&
+      direction.targetPlatform === Platform.TRAINING_PEAKS.key;
+
+    this.inProgress = true;
+
+    this.workoutClient
+      .copyCalendarToCalendar(
+        startDate,
+        endDate,
+        trainingTypes,
+        skipSynced,
+        direction,
+        replaceChangedWorkouts
       )
-    })
+      .pipe(
+        finalize(() => this.inProgress = false)
+      )
+      .subscribe(response => {
+        this.notificationService.copyCalendarToCalendarCompleted(
+          response,
+          Platform.getTitle(direction.sourcePlatform),
+          Platform.getTitle(direction.targetPlatform)
+        );
+      });
   }
 
   private getFormGroup() {

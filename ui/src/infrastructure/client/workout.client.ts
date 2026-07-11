@@ -11,9 +11,25 @@ export class WorkoutClient {
   constructor(private httpClient: HttpClient) {
   }
 
-  copyCalendarToCalendar(startDate, endDate, types, skipSynced, platformDirection): Observable<any> {
-    return this.httpClient
-      .post(`/api/workout/copy-calendar-to-calendar`, {startDate, endDate, types, skipSynced, ...platformDirection})
+  copyCalendarToCalendar(
+    startDate,
+    endDate,
+    types,
+    skipSynced,
+    platformDirection,
+    replaceChangedWorkouts = false
+  ): Observable<any> {
+    return this.httpClient.post(
+      `/api/workout/copy-calendar-to-calendar`,
+      {
+        startDate,
+        endDate,
+        types,
+        skipSynced,
+        replaceChangedWorkouts,
+        ...platformDirection
+      }
+    );
   }
 
   copyCalendarToLibrary(name, startDate, endDate, types, platformDirection, isPlan): Observable<any> {

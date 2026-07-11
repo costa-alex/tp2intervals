@@ -12,11 +12,14 @@ data class C2CTodayScheduledRequest(
     val targetPlatform: Platform
 ) : Schedulable {
     fun forToday() = CopyFromCalendarToCalendarRequest(
-        LocalDate.now(),
-        LocalDate.now(),
-        types,
-        skipSynced,
-        sourcePlatform,
-        targetPlatform
+        startDate = LocalDate.now(),
+        endDate = LocalDate.now(),
+        types = types,
+        skipSynced = skipSynced,
+        sourcePlatform = sourcePlatform,
+        targetPlatform = targetPlatform,
+        replaceChangedWorkouts =
+            sourcePlatform == Platform.TRAINER_ROAD &&
+                targetPlatform == Platform.TRAINING_PEAKS
     )
 }

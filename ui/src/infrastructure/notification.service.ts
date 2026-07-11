@@ -46,6 +46,8 @@ export class NotificationService {
     const skippedByType = response.skippedByType ?? 0;
     const skippedAlreadySynced = response.skippedAlreadySynced ?? 0;
     const failed = response.failed ?? 0;
+    const removed = response.removed ?? 0;
+    const failedToRemove = response.failedToRemove ?? 0;
 
     const direction = sourcePlatformTitle && targetPlatformTitle
       ? ` from ${sourcePlatformTitle} to ${targetPlatformTitle}`
@@ -61,6 +63,24 @@ export class NotificationService {
       lines.push('No workouts copied.');
     } else {
       lines.push('No workouts found for the selected period.');
+    }
+
+    if (removed > 0) {
+      lines.push(
+        `${this.formatCount(
+          removed,
+          'previously synced workout'
+        )} removed from ${targetPlatformTitle ?? 'the destination'}.`
+      );
+    }
+
+    if (failedToRemove > 0) {
+      lines.push(
+        `${this.formatCount(
+          failedToRemove,
+          'previous workout'
+        )} could not be removed.`
+      );
     }
 
     if (skippedAlreadySynced > 0) {
