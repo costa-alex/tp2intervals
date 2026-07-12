@@ -1,60 +1,90 @@
-<div *ngIf="!platformInfo">
-  <mat-progress-bar mode="query"></mat-progress-bar>
-</div>
+<div class="training-peaks-page app-panel-page">
 
-<div *ngIf="platformInfo?.isValid === false">
-  Platform is not configured. Please set required parameters on Configuration page
-</div>
+  <div *ngIf="!platformInfo" class="loading-container app-panel-container">
+    <mat-progress-bar mode="query"></mat-progress-bar>
+  </div>
 
-<div *ngIf="platformInfo?.isValid">
-  <mat-accordion multi>
-    <mat-expansion-panel [disabled]="!platformInfo.isAthlete">
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          Sync planned workouts
-        </mat-panel-title>
-        <mat-panel-description>
-          <div
-            [matTooltipDisabled]="platformInfo.isAthlete"
-            matTooltip="Not available for TP coach account"
-            matTooltipPosition="right">
-            Copy workouts between Intervals and TrainingPeaks calendars
+  <div
+    *ngIf="platformInfo?.isValid === false"
+    class="not-configured app-panel-container app-not-configured">
+    Platform is not configured. Please set required parameters on the Configuration page.
+  </div>
+
+  <div *ngIf="platformInfo?.isValid" class="content-container app-panel-container">
+    <mat-accordion multi class="action-accordion app-panel-accordion">
+
+      <mat-expansion-panel
+        class="action-panel app-panel-card"
+        [disabled]="!platformInfo.isAthlete">
+        <mat-expansion-panel-header class="action-header app-panel-card-header">
+          <div class="action-header-content app-panel-card-header-content">
+            <div class="action-icon app-panel-card-icon">
+              <mat-icon>sync</mat-icon>
+            </div>
+
+            <div class="action-text app-panel-card-text">
+              <div class="action-title app-panel-card-title">Sync planned workouts</div>
+              <div
+                class="action-description app-panel-card-description"
+                [attr.tabindex]="platformInfo.isAthlete ? null : 0"
+                [matTooltipDisabled]="platformInfo.isAthlete"
+                matTooltip="Not available for TP coach account"
+                matTooltipPosition="right">
+                Copy workouts between Intervals and TrainingPeaks calendars
+              </div>
+            </div>
           </div>
-        </mat-panel-description>
-      </mat-expansion-panel-header>
+        </mat-expansion-panel-header>
 
-      <tp-copy-calendar-to-calendar></tp-copy-calendar-to-calendar>
-    </mat-expansion-panel>
+        <tp-copy-calendar-to-calendar></tp-copy-calendar-to-calendar>
+      </mat-expansion-panel>
 
-    <mat-expansion-panel>
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          Copy plan or workout library
-        </mat-panel-title>
-        <mat-panel-description>
-          Copy whole training plan or workout library from TrainingPeaks to Intervals
-        </mat-panel-description>
-      </mat-expansion-panel-header>
+      <mat-expansion-panel class="action-panel app-panel-card">
+        <mat-expansion-panel-header class="action-header app-panel-card-header">
+          <div class="action-header-content app-panel-card-header-content">
+            <div class="action-icon app-panel-card-icon">
+              <mat-icon>fitness_center</mat-icon>
+            </div>
 
-      <tp-copy-library-container></tp-copy-library-container>
-    </mat-expansion-panel>
-
-    <mat-expansion-panel [disabled]="!platformInfo.isAthlete">
-      <mat-expansion-panel-header>
-        <mat-panel-title>
-          Copy planned workouts to library
-        </mat-panel-title>
-        <mat-panel-description>
-          <div
-            [matTooltipDisabled]="platformInfo.isAthlete"
-            matTooltip="Not available for TP coach account"
-            matTooltipPosition="right">
-            Copy workouts from TrainingPeaks calendar to Intervals workout library
+            <div class="action-text app-panel-card-text">
+              <div class="action-title app-panel-card-title">Copy plan or workout library</div>
+              <div class="action-description app-panel-card-description">
+                Copy whole training plan or workout library from TrainingPeaks to Intervals
+              </div>
+            </div>
           </div>
-        </mat-panel-description>
-      </mat-expansion-panel-header>
+        </mat-expansion-panel-header>
 
-      <tp-copy-calendar-to-library></tp-copy-calendar-to-library>
-    </mat-expansion-panel>
-  </mat-accordion>
+        <tp-copy-library-container></tp-copy-library-container>
+      </mat-expansion-panel>
+
+      <mat-expansion-panel
+        class="action-panel app-panel-card"
+        [disabled]="!platformInfo.isAthlete">
+        <mat-expansion-panel-header class="action-header app-panel-card-header">
+          <div class="action-header-content app-panel-card-header-content">
+            <div class="action-icon app-panel-card-icon">
+              <mat-icon>library_books</mat-icon>
+            </div>
+
+            <div class="action-text app-panel-card-text">
+              <div class="action-title app-panel-card-title">Copy planned workouts to library</div>
+              <div
+                class="action-description app-panel-card-description"
+                [attr.tabindex]="platformInfo.isAthlete ? null : 0"
+                [matTooltipDisabled]="platformInfo.isAthlete"
+                matTooltip="Not available for TP coach account"
+                matTooltipPosition="right">
+                Copy workouts from TrainingPeaks calendar to Intervals workout library
+              </div>
+            </div>
+          </div>
+        </mat-expansion-panel-header>
+
+        <tp-copy-calendar-to-library></tp-copy-calendar-to-library>
+      </mat-expansion-panel>
+
+    </mat-accordion>
+  </div>
+
 </div>

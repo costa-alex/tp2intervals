@@ -43,6 +43,15 @@ body {
   margin: 0 auto;
 }
 
+.app-not-configured {
+  box-sizing: border-box;
+  padding: 16px;
+  border: 1px solid #ffe69c;
+  border-radius: 12px;
+  background: #fff3cd;
+  color: #664d03;
+}
+
 .app-panel-accordion {
   display: block;
 }
@@ -101,8 +110,18 @@ body {
   line-height: 1.35;
 }
 
+.app-panel-card-header[aria-disabled='true'] .app-panel-card-description {
+  color: inherit;
+  opacity: 0.72;
+}
+
 .app-panel-card > .mat-expansion-panel-content > .mat-expansion-panel-body {
   padding: 0 16px 16px;
+}
+
+.app-panel-card .form-field {
+  width: 100%;
+  max-width: 450px;
 }
 
 @media (max-width: 768px) {

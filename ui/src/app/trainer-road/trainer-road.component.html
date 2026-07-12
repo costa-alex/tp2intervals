@@ -4,7 +4,9 @@
     <mat-progress-bar mode="query"></mat-progress-bar>
   </div>
 
-  <div *ngIf="platformInfo?.isValid === false" class="not-configured app-panel-container">
+  <div
+    *ngIf="platformInfo?.isValid === false"
+    class="not-configured app-panel-container app-not-configured">
     Platform is not configured. Please set required parameters on the Configuration page.
   </div>
 
