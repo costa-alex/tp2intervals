@@ -1,0 +1,104 @@
+@use '@angular/material' as mat;
+
+@include mat.core();
+
+$app-indigo: (
+  50: #edf3ff,
+  100: #d6e4ff,
+  200: #9ec1ff,
+  300: #77a5e5,
+  400: #5681bf,
+  500: #315e9e,
+  600: #284f86,
+  700: #20416f,
+  800: #183359,
+  900: #102443,
+  contrast: (
+    50: #102744,
+    100: #102744,
+    200: #102744,
+    300: #102744,
+    400: #102744,
+    500: white,
+    600: white,
+    700: white,
+    800: white,
+    900: white,
+  ),
+);
+
+$app-teal: (
+  50: #e7f8f6,
+  100: #c4efeb,
+  200: #66d9cf,
+  300: #42bdb3,
+  400: #239a91,
+  500: #087a72,
+  600: #076b64,
+  700: #065a54,
+  800: #054943,
+  900: #033832,
+  contrast: (
+    50: #082d2a,
+    100: #082d2a,
+    200: #082d2a,
+    300: #082d2a,
+    400: #082d2a,
+    500: white,
+    600: white,
+    700: white,
+    800: white,
+    900: white,
+  ),
+);
+
+$app-warn: (
+  50: #ffedea,
+  100: #ffdad5,
+  200: #ffb4ab,
+  300: #ff897d,
+  400: #df6057,
+  500: #b3261e,
+  600: #9c1d17,
+  700: #82150f,
+  800: #690d09,
+  900: #520505,
+  contrast: (
+    50: #3a0808,
+    100: #3a0808,
+    200: #3a0808,
+    300: #3a0808,
+    400: #3a0808,
+    500: white,
+    600: white,
+    700: white,
+    800: white,
+    900: white,
+  ),
+);
+
+$light-theme: mat.define-light-theme((
+  color: (
+    primary: mat.define-palette($app-indigo, 500, 100, 700),
+    accent: mat.define-palette($app-teal, 500, 100, 700),
+    warn: mat.define-palette($app-warn, 500, 100, 700),
+  ),
+  typography: mat.define-typography-config(),
+  density: 0,
+));
+
+$dark-theme: mat.define-dark-theme((
+  color: (
+    primary: mat.define-palette($app-indigo, 200, 100, 300),
+    accent: mat.define-palette($app-teal, 200, 100, 300),
+    warn: mat.define-palette($app-warn, 200, 100, 300),
+  ),
+  typography: mat.define-typography-config(),
+  density: 0,
+));
+
+@include mat.all-component-themes($light-theme);
+
+html.app-theme-dark {
+  @include mat.all-component-colors($dark-theme);
+}

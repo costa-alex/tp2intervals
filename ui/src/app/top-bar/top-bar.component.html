@@ -21,6 +21,7 @@
         @if (router.url === button.url) {
           <button
             mat-stroked-button
+            class="active-page-button"
             [routerLink]="[button.url]">
             {{ button.name }}
           </button>

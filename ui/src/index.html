@@ -5,6 +5,27 @@
   <title>TP2Intervals</title>
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (() => {
+      let preference = 'system';
+
+      try {
+        preference = localStorage.getItem('tp2intervals.theme') ?? 'system';
+      } catch {
+        // Fall back to the operating-system preference.
+      }
+
+      const systemDark = typeof window.matchMedia === 'function' &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const useDark = preference === 'dark' ||
+        (preference !== 'light' && systemDark);
+
+      document.documentElement.classList.add(
+        useDark ? 'app-theme-dark' : 'app-theme-light'
+      );
+    })();
+  </script>
   <link rel="icon" type="image/x-icon" href="favicon.png">
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">

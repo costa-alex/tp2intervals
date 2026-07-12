@@ -1,3 +1,69 @@
+:root {
+  color-scheme: light;
+  --app-background: #f6f8fc;
+  --app-surface: #ffffff;
+  --app-surface-secondary: #eef3f8;
+  --app-text: #172033;
+  --app-text-muted: #526173;
+  --app-border: #d5dee9;
+  --app-border-strong: #aab8c8;
+  --app-primary: #315e9e;
+  --app-on-primary: #ffffff;
+  --app-accent: #087a72;
+  --app-on-accent: #ffffff;
+  --app-success: #237a3b;
+  --app-on-success: #ffffff;
+  --app-success-container: #dcf3e2;
+  --app-success-border: #8bc89b;
+  --app-info: #0b6fa4;
+  --app-info-container: #dceefa;
+  --app-info-border: #86bdd7;
+  --app-warning: #9a5a00;
+  --app-warning-container: #fff3d6;
+  --app-warning-border: #e3bd65;
+  --app-error: #b3261e;
+  --app-on-error: #ffffff;
+  --app-error-container: #fde3e1;
+  --app-error-border: #e5a39e;
+  --app-primary-badge-background: rgba(255, 255, 255, 0.22);
+  --app-primary-badge-border: rgba(255, 255, 255, 0.5);
+}
+
+html.app-theme-light {
+  color-scheme: light;
+}
+
+html.app-theme-dark {
+  color-scheme: dark;
+  --app-background: #0b1220;
+  --app-surface: #111b2e;
+  --app-surface-secondary: #17243a;
+  --app-text: #e7edf7;
+  --app-text-muted: #a9b6c8;
+  --app-border: #2c3a50;
+  --app-border-strong: #465872;
+  --app-primary: #9ec1ff;
+  --app-on-primary: #102744;
+  --app-accent: #66d9cf;
+  --app-on-accent: #082d2a;
+  --app-success: #79d690;
+  --app-on-success: #0f2d18;
+  --app-success-container: #173d27;
+  --app-success-border: #376d47;
+  --app-info: #80caff;
+  --app-info-container: #12354a;
+  --app-info-border: #356b88;
+  --app-warning: #f6c667;
+  --app-warning-container: #3a2c0a;
+  --app-warning-border: #755f2d;
+  --app-error: #ffb4ab;
+  --app-on-error: #3a0808;
+  --app-error-container: #4a1f22;
+  --app-error-border: #8c4d4d;
+  --app-primary-badge-background: rgba(16, 39, 68, 0.16);
+  --app-primary-badge-border: rgba(16, 39, 68, 0.4);
+}
+
 html,
 body {
   height: 100%;
@@ -5,21 +71,44 @@ body {
 
 body {
   margin: 0;
+  background: var(--app-background);
+  color: var(--app-text);
   font-family: Roboto, "Helvetica Neue", sans-serif;
 }
 
-.mat-mdc-snack-bar-container {
-  --mat-mdc-snack-bar-button-color: #ffffff;
-  --mdc-snackbar-supporting-text-color: #ffffff;
-  --mat-snack-bar-button-color: #ffffff;
+.mat-drawer-container,
+.mat-drawer-content {
+  background-color: var(--app-background);
+  color: var(--app-text);
+}
+
+.mat-drawer,
+.mat-mdc-card,
+.mat-expansion-panel,
+.mat-mdc-select-panel,
+.mat-mdc-autocomplete-panel,
+.mat-datepicker-content,
+.mat-mdc-dialog-container .mdc-dialog__surface {
+  background-color: var(--app-surface);
+  color: var(--app-text);
+}
+
+.mat-divider {
+  border-top-color: var(--app-border) !important;
 }
 
 .mat-mdc-snack-bar-container.app-notification-success {
-  --mdc-snackbar-container-color: #2e7d32;
+  --mat-mdc-snack-bar-button-color: var(--app-on-success);
+  --mat-snack-bar-button-color: var(--app-on-success);
+  --mdc-snackbar-container-color: var(--app-success);
+  --mdc-snackbar-supporting-text-color: var(--app-on-success);
 }
 
 .mat-mdc-snack-bar-container.app-notification-error {
-  --mdc-snackbar-container-color: #c62828;
+  --mat-mdc-snack-bar-button-color: var(--app-on-error);
+  --mat-snack-bar-button-color: var(--app-on-error);
+  --mdc-snackbar-container-color: var(--app-error);
+  --mdc-snackbar-supporting-text-color: var(--app-on-error);
 }
 
 .mat-mdc-snack-bar-container.app-notification .mdc-snackbar__label {
@@ -46,10 +135,10 @@ body {
 .app-not-configured {
   box-sizing: border-box;
   padding: 16px;
-  border: 1px solid #ffe69c;
+  border: 1px solid var(--app-warning-border);
   border-radius: 12px;
-  background: #fff3cd;
-  color: #664d03;
+  background: var(--app-warning-container);
+  color: var(--app-warning);
 }
 
 .app-panel-accordion {
@@ -110,7 +199,7 @@ body {
 }
 
 .app-panel-card-description {
-  color: rgba(0, 0, 0, 0.65);
+  color: var(--app-text-muted);
   font-size: 0.95rem;
   line-height: 1.35;
 }

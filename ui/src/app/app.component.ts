@@ -12,6 +12,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TopBarComponent } from 'app/top-bar/top-bar.component';
 import { EnvironmentService } from 'infrastructure/environment.service';
 import { GitHubClient } from 'infrastructure/client/github.client';
+import { ThemeService } from 'infrastructure/theme.service';
 
 @Component({
   selector: 'app-root',
@@ -63,7 +64,8 @@ export class AppComponent implements OnInit {
   constructor(
     protected router: Router,
     private githubClient: GitHubClient,
-    private environmentService: EnvironmentService
+    private environmentService: EnvironmentService,
+    private themeService: ThemeService
   ) {
   }
 

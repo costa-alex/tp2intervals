@@ -17,6 +17,7 @@ import {MatSelectModule} from "@angular/material/select";
 import {MatExpansionModule} from "@angular/material/expansion";
 import {MatTooltipModule} from "@angular/material/tooltip";
 import {MatIconModule} from '@angular/material/icon';
+import {ThemeService} from 'infrastructure/theme.service';
 
 @Component({
   selector: 'app-configuration',
@@ -58,7 +59,8 @@ export class ConfigurationComponent implements OnInit {
     private router: Router,
     private formBuilder: FormBuilder,
     private configClient: ConfigurationClient,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    readonly themeService: ThemeService
   ) {
   }
 

@@ -178,13 +178,26 @@
             <div class="config-text app-panel-card-text">
               <h2 class="config-title app-panel-card-title">General</h2>
               <div class="config-description app-panel-card-description">
-                Control application diagnostics and other global options.
+                Control appearance, diagnostics, and other global options.
               </div>
             </div>
           </div>
         </mat-expansion-panel-header>
 
         <div class="panel-content general-content">
+          <mat-form-field class="theme-field">
+            <mat-label>Theme</mat-label>
+            <mat-icon matPrefix>contrast</mat-icon>
+            <mat-select
+              [value]="themeService.preference()"
+              (selectionChange)="themeService.setPreference($event.value)">
+              <mat-option value="system">System</mat-option>
+              <mat-option value="light">Light</mat-option>
+              <mat-option value="dark">Dark</mat-option>
+            </mat-select>
+            <mat-hint>System follows this device. Saved in this browser.</mat-hint>
+          </mat-form-field>
+
           <mat-checkbox formControlName="general.debug-mode">
             Debug Mode
           </mat-checkbox>

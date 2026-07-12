@@ -7,6 +7,23 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style type="text/css">
+    :root {
+      color-scheme: light dark;
+      --loading-background: #f6f8fc;
+      --loading-text: #172033;
+      --loading-primary: #315e9e;
+      --loading-accent: #087a72;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --loading-background: #0b1220;
+        --loading-text: #e7edf7;
+        --loading-primary: #9ec1ff;
+        --loading-accent: #66d9cf;
+      }
+    }
+
     @keyframes ldio-einez783zpi-1 {
       0% {
         transform: rotate(0deg)
@@ -42,7 +59,7 @@
       width: 120px;
       height: 60px;
       border-radius: 120px 120px 0 0;
-      background: #0055a5;
+      background: var(--loading-primary);
       animation: ldio-einez783zpi-1 1s linear infinite;
       transform-origin: 60px 60px
     }
@@ -81,7 +98,7 @@
       width: 16px;
       height: 16px;
       border-radius: 50%;
-      background: #45aee7;
+      background: var(--loading-accent);
       animation: ldio-einez783zpi-3 1s linear infinite
     }
 
@@ -123,7 +140,12 @@
 
   <style>
     html, body { height: 100%; }
-    body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+    body {
+      margin: 0;
+      background: var(--loading-background);
+      color: var(--loading-text);
+      font-family: Roboto, "Helvetica Neue", sans-serif;
+    }
 
     .center {
       text-align: center;

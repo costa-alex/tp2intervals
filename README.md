@@ -137,7 +137,11 @@ The interface displays the 50 most recent executions. Calendar-to-library and li
 
 Open **Settings** after starting the application. Intervals.icu credentials are required; TrainingPeaks and TrainerRoad are optional and are only needed for their corresponding features.
 
-Settings, schedules, and execution history are stored in the SQLite database under `/data`.
+The **General** section offers System, Light, and Dark appearance modes. System
+follows the operating-system preference, while an explicit choice is stored in
+the current browser.
+
+Platform settings, schedules, and execution history are stored in the SQLite database under `/data`.
 
 ### Intervals.icu
 

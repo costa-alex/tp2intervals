@@ -16,6 +16,12 @@
   gap: 8px;
 }
 
+.active-page-button {
+  --mdc-outlined-button-label-text-color: var(--app-on-primary);
+  --mdc-outlined-button-outline-color: var(--app-on-primary);
+  --mat-mdc-button-persistent-ripple-color: var(--app-on-primary);
+}
+
 .mobile-page-title {
   margin-left: 12px;
   font-weight: 600;

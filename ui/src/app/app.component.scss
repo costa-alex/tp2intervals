@@ -20,7 +20,7 @@
 .app-footer {
   margin-top: 64px;
   padding: 24px 16px;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-top: 1px solid var(--app-border);
 }
 
 .footer-content {
@@ -37,7 +37,7 @@
 .footer-disclaimer {
   font-size: 0.85rem;
   line-height: 1.5;
-  color: rgba(0, 0, 0, 0.6);
+  color: var(--app-text-muted);
 }
 
 @media (max-width: 768px) {
