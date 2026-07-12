@@ -39,8 +39,8 @@ import {
 export class TpCopyCalendarToCalendarComponent implements OnInit {
   readonly Platform = Platform;
   readonly directions = [
-    {title: "Intervals.icu -> TrainingPeaks", value: Platform.DIRECTION_INT_TP},
-    {title: "TrainingPeaks -> Intervals.icu", value: Platform.DIRECTION_TP_INT},
+    {title: "Intervals.icu → TrainingPeaks", value: Platform.DIRECTION_INT_TP},
+    {title: "TrainingPeaks → Intervals.icu", value: Platform.DIRECTION_TP_INT},
   ]
   readonly trainingTypes = [
     {title: "Ride", value: "BIKE"},

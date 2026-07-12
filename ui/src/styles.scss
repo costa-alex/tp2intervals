@@ -53,13 +53,18 @@ body {
 }
 
 .app-panel-accordion {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .app-panel-card {
-  margin-bottom: 12px;
   border-radius: 12px !important;
   overflow: hidden;
+}
+
+.app-panel-accordion .app-panel-card {
+  margin: 0 !important;
 }
 
 .app-panel-card-header {
