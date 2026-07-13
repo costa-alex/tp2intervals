@@ -43,7 +43,7 @@ data class C2CScheduledRequest(
     )
 
     companion object {
-        const val MIN_OFFSET_DAYS = -365
-        const val MAX_OFFSET_DAYS = 365
+        const val MIN_OFFSET_DAYS = -1
+        const val MAX_OFFSET_DAYS = 7
     }
 }

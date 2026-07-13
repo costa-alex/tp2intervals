@@ -26,8 +26,8 @@ import { NotificationService } from 'infrastructure/notification.service';
 import { Platform } from 'infrastructure/platform';
 import { TrainingTypes } from 'infrastructure/training-types';
 
-const MIN_OFFSET_DAYS = -365;
-const MAX_OFFSET_DAYS = 365;
+const MIN_OFFSET_DAYS = -1;
+const MAX_OFFSET_DAYS = 7;
 
 
 function integerValidator(
