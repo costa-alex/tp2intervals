@@ -144,16 +144,15 @@ Possible statuses are:
 - `NO_CHANGES`
 - `PARTIAL_SUCCESS`
 - `FAILED`
+- `INTERRUPTED`
 
-The interface displays the 50 most recent executions. Calendar-to-library and library-to-library operations are not currently included in synchronization history.
+The interface displays up to the configured SYNC_HISTORY_RETENTION_LIMIT value, which defaults to 100. Calendar-to-library and library-to-library operations are not currently included in synchronization history.
 
 ## Settings
 
 Open **Settings** after starting the application. Intervals.icu credentials are required; TrainingPeaks and TrainerRoad are optional and are only needed for their corresponding features.
 
-The **General** section offers System, Light, and Dark appearance modes. System
-follows the operating-system preference, while an explicit choice is stored in
-the current browser.
+The **General** section offers System, Light, and Dark appearance modes. System follows the operating-system preference, while an explicit choice is stored in the current browser.
 
 Platform settings, schedules, and execution history are stored in the SQLite database under `/data`.
 
