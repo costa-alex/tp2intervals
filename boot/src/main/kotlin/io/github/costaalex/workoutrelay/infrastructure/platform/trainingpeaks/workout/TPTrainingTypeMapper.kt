@@ -7,7 +7,7 @@ object TPTrainingTypeMapper {
     private val workoutTypeMap = mapOf(
         TrainingType.SWIM to TPWorkoutType.SWIM,
         TrainingType.BIKE to TPWorkoutType.BIKE,
-        TrainingType.VIRTUAL_BIKE to TPWorkoutType.BIKE,
+        //TrainingType.VIRTUAL_BIKE to TPWorkoutType.BIKE,
         TrainingType.MTB to TPWorkoutType.MTB_BIKE,
         TrainingType.RUN to TPWorkoutType.RUN,
         TrainingType.WALK to TPWorkoutType.RUN,
@@ -17,12 +17,12 @@ object TPTrainingTypeMapper {
     )
 
     private val workoutSubTypeMap = mapOf(
-        TrainingType.SWIM to TPWorkoutSubType.SWIM,
-        TrainingType.BIKE to TPWorkoutSubType.RIDE,
-        TrainingType.VIRTUAL_BIKE to TPWorkoutSubType.VIRTUAL_BIKE,
-        TrainingType.MTB to TPWorkoutSubType.MOUNTAIN_BIKE,
-        TrainingType.RUN to TPWorkoutSubType.RUN,
-        TrainingType.WALK to TPWorkoutSubType.WALK,
+        TrainingType.SWIM to TPWorkoutSubType.POOL_SWIM,
+        TrainingType.BIKE to TPWorkoutSubType.ROAD_BIKE,
+        //TrainingType.VIRTUAL_BIKE to TPWorkoutSubType.VIRTUAL_BIKE,
+        TrainingType.MTB to TPWorkoutSubType.XC_MTB,
+        TrainingType.RUN to TPWorkoutSubType.ROAD_RUN,
+        TrainingType.WALK to TPWorkoutSubType.HIKE,
         TrainingType.STRENGTH to TPWorkoutSubType.STRENGTH,
         TrainingType.NOTE to TPWorkoutSubType.DAY_OFF,
         TrainingType.UNKNOWN to TPWorkoutSubType.OTHER
