@@ -19,6 +19,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Security
 
+## [0.4.0] - 2026-07-15
+
+### Changed
+
+- Renamed the application from TP2Intervals to Workout Relay.
+- Renamed the Gradle project, JAR, Spring application, Docker service, container image, repository, database, log file, and Kotlin base package.
+- Updated application branding, metadata, documentation, CI, and release workflows.
+
+### Migration
+
+- Existing deployments must rename or remap the previous SQLite database.
+- The legacy container image is no longer used.
+
 ## [0.3.2] - 2026-07-13
 
 ### Added
