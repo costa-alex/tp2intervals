@@ -100,9 +100,19 @@ class TrainingPeaksWorkoutRepository(
             .filter { it.name.contains(name) }
     }
 
-    override fun getWorkoutFromLibrary(externalData: ExternalData): Workout {
-        return tpWorkoutLibraryRepository.getAllWorkouts()
-            .find { it.details.externalData == externalData }!!
+    override fun getWorkoutFromLibrary(
+        externalData: ExternalData
+    ): Workout {
+        return tpWorkoutLibraryRepository
+            .getAllWorkouts()
+            .find {
+                it.details.externalData.matchesAnyId(
+                    externalData
+                )
+            }
+            ?: throw IllegalArgumentException(
+                "TrainingPeaks workout was not found"
+            )
     }
 
     override fun saveWorkoutsToLibrary(libraryContainer: LibraryContainer, workouts: List<Workout>) {
