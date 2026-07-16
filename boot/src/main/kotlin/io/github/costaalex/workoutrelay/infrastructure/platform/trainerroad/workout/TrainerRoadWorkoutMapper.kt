@@ -15,6 +15,12 @@ class TrainerRoadWorkoutMapper {
     fun toWorkout(trWorkoutResponseDTO: TRWorkoutResponseDTO, removeHtmlTags: Boolean): Workout {
         val trWorkout: TRWorkoutResponseDTO.TRWorkout = trWorkoutResponseDTO.workout
         val steps = convertSteps(trWorkout.intervalData)
+
+        log.info(
+            "TrainerRoad workout additional property names={}",
+            trWorkout.additionalProperties.keys
+        )
+        
         return Workout(
             toWorkoutDetails(trWorkout.details, removeHtmlTags),
             null,
@@ -39,6 +45,26 @@ class TrainerRoadWorkoutMapper {
     private fun convertSteps(intervals: List<TRWorkoutResponseDTO.IntervalsDataDTO>): List<WorkoutStep> {
         val steps = mutableListOf<WorkoutStep>()
 
+        intervals.forEachIndexed { index, interval ->
+            log.info(
+                "TrainerRoad raw interval. " +
+                    "index={}, name={}, start={}, end={}, " +
+                    "isFake={}, testInterval={}, " +
+                    "startTarget={}, " +
+                    "startTargetPowerPercent={}, " +
+                    "additionalProperties={}",
+                index,
+                interval.name,
+                interval.start,
+                interval.end,
+                interval.isFake,
+                interval.testInterval,
+                interval.startTarget,
+                interval.startTargetPowerPercent,
+                interval.additionalProperties
+            )
+        }
+
         for (interval in intervals) {
             if (interval.name == "Workout") {
                 continue
@@ -49,21 +75,6 @@ class TrainerRoadWorkoutMapper {
             val singleStep =
                 SingleStep(name, stepLength, StepTarget(interval.targetStart(), interval.targetEnd()), null, false)
             steps.add(singleStep)
-
-            log.info(
-                "TrainerRoad interval. name={}, " +
-                    "startTarget={}, endTarget={}, " +
-                    "startTargetPowerPercent={}, " +
-                    "endTargetPowerPercent={}, " +
-                    "resolvedStart={}, resolvedEnd={}",
-                interval.name,
-                interval.startTarget,
-                interval.endTarget,
-                interval.startTargetPowerPercent,
-                interval.endTargetPowerPercent,
-                interval.targetStart(),
-                interval.targetEnd()
-            )
         }
         return steps
     }

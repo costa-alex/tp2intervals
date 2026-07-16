@@ -3,6 +3,8 @@ package io.github.costaalex.workoutrelay.infrastructure.platform.trainerroad.wor
 import com.fasterxml.jackson.annotation.JsonAlias
 import com.fasterxml.jackson.annotation.JsonProperty
 import kotlin.math.roundToInt
+import com.fasterxml.jackson.annotation.JsonAnySetter
+import com.fasterxml.jackson.annotation.JsonIgnore
 
 class TRWorkoutResponseDTO(
     @JsonProperty("Workout")
@@ -13,10 +15,25 @@ class TRWorkoutResponseDTO(
         @JsonProperty("Details")
         @JsonAlias("details")
         val details: TrainerRoadWorkoutDetailsDTO,
+
         @JsonProperty("IntervalData")
         @JsonAlias("intervalData")
-        val intervalData: List<IntervalsDataDTO> = emptyList(),
-    )
+        val intervalData: List<IntervalsDataDTO> =
+            emptyList(),
+    ) {
+
+        @JsonIgnore
+        val additionalProperties:
+            MutableMap<String, Any?> = linkedMapOf()
+
+        @JsonAnySetter
+        fun captureAdditionalProperty(
+            name: String,
+            value: Any?
+        ) {
+            additionalProperties[name] = value
+        }
+    }
 
     class IntervalsDataDTO(
         @JsonProperty("Start")
@@ -47,6 +64,18 @@ class TRWorkoutResponseDTO(
         @JsonAlias("endTarget")
         val endTarget: List<Double>? = null,
     ) {
+        @JsonIgnore
+        val additionalProperties:
+            MutableMap<String, Any?> = linkedMapOf()
+
+        @JsonAnySetter
+        fun captureAdditionalProperty(
+            name: String,
+            value: Any?
+        ) {
+            additionalProperties[name] = value
+        }
+
         fun targetStart(): Int = (startTarget?.firstOrNull() ?: startTargetPowerPercent).roundToInt()
 
         fun targetEnd(): Int = (endTarget?.firstOrNull() ?: endTargetPowerPercent ?: targetStart().toDouble()).roundToInt()
