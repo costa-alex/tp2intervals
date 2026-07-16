@@ -287,117 +287,42 @@ class ToTPStructureConverter(
                     TPIntensityClass.COOL_DOWN
 
                 else ->
-                    toIntensityClass(
-                        singleStep
-                    )
+                    toIntensityClass(singleStep)
             }
 
-        val rampStepDTOs =
-            toRampStepDTOs(
-                singleStep = singleStep,
-                intensityClass =
-                    intensityClass
+        /*
+        * minValue e maxValue representam os limites
+        * do target. A direção é indicada pelo tipo
+        * rampUp ou rampDown.
+        */
+        val minimumTarget =
+            minOf(
+                singleStep.target.start,
+                singleStep.target.end
+            )
+
+        val maximumTarget =
+            maxOf(
+                singleStep.target.start,
+                singleStep.target.end
+            )
+
+        val stepDTO =
+            mapToStepDTO(
+                workoutStep = singleStep,
+                intensityClassOverride =
+                    intensityClass,
+                nameOverride = "Ramp",
+                mainTargetOverride =
+                    TPTargetDTO.mainTarget(
+                        minimumTarget,
+                        maximumTarget
+                    )
             )
 
         return TPStructureStepDTO.rampStep(
-            stepDTOs = rampStepDTOs,
+            stepDTO = stepDTO,
             rampUp = rampUp
         )
-    }
-
-    private fun toRampStepDTOs(
-        singleStep: SingleStep,
-        intensityClass: TPIntensityClass
-    ): List<TPStepDTO> {
-
-        require(
-            singleStep.length.unit ==
-                StepLength.LengthUnit.SECONDS
-        ) {
-            "TrainingPeaks ramps must be time based"
-        }
-
-        val totalSeconds =
-            singleStep.length.value
-
-        require(totalSeconds > 0) {
-            "Ramp duration must be greater than zero"
-        }
-
-        /*
-        * O TrainingPeaks utiliza ramps stepwise.
-        *
-        * - ramps até 1 minuto: pelo menos 2 passos;
-        * - ramps superiores: aproximadamente 1 passo/minuto;
-        * - nunca criamos mais passos do que segundos.
-        */
-        val desiredStepCount =
-            maxOf(
-                2,
-                ceil(
-                    totalSeconds.toDouble() / 60.0
-                ).toInt()
-            )
-
-        val stepCount =
-            minOf(
-                desiredStepCount,
-                totalSeconds.toInt()
-            )
-
-        val baseDuration =
-            totalSeconds / stepCount
-
-        val remainingSeconds =
-            totalSeconds % stepCount
-
-        val targetDifference =
-            singleStep.target.end -
-                singleStep.target.start
-
-        return (0 until stepCount).map { index ->
-
-            val duration =
-                baseDuration +
-                    if (
-                        index <
-                        remainingSeconds
-                    ) {
-                        1
-                    } else {
-                        0
-                    }
-
-            val ratio =
-                if (stepCount == 1) {
-                    0.0
-                } else {
-                    index.toDouble() /
-                        (stepCount - 1)
-                }
-
-            val target =
-                (
-                    singleStep.target.start +
-                        targetDifference * ratio
-                ).roundToInt()
-
-            TPStepDTO(
-                name = "Ramp",
-                length =
-                    TPLengthDTO.fromStepLength(
-                        StepLength.seconds(
-                            duration
-                        )
-                    ),
-                targets = listOf(
-                    TPTargetDTO.mainTarget(
-                        target
-                    )
-                ),
-                intensityClass =
-                    intensityClass.apiValue
-            )
-        }
     }
 }
