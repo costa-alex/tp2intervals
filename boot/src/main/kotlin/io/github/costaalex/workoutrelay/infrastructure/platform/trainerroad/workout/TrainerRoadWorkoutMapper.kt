@@ -16,11 +16,10 @@ class TrainerRoadWorkoutMapper {
         val trWorkout: TRWorkoutResponseDTO.TRWorkout = trWorkoutResponseDTO.workout
         val steps = convertSteps(trWorkout.intervalData)
 
-        log.info(
-            "TrainerRoad workout additional property names={}",
-            trWorkout.additionalProperties.keys
+        logWorkoutDataSummary(
+            trWorkout.additionalProperties["WorkoutData"]
         )
-        
+
         return Workout(
             toWorkoutDetails(trWorkout.details, removeHtmlTags),
             null,
@@ -45,26 +44,6 @@ class TrainerRoadWorkoutMapper {
     private fun convertSteps(intervals: List<TRWorkoutResponseDTO.IntervalsDataDTO>): List<WorkoutStep> {
         val steps = mutableListOf<WorkoutStep>()
 
-        intervals.forEachIndexed { index, interval ->
-            log.info(
-                "TrainerRoad raw interval. " +
-                    "index={}, name={}, start={}, end={}, " +
-                    "isFake={}, testInterval={}, " +
-                    "startTarget={}, " +
-                    "startTargetPowerPercent={}, " +
-                    "additionalProperties={}",
-                index,
-                interval.name,
-                interval.start,
-                interval.end,
-                interval.isFake,
-                interval.testInterval,
-                interval.startTarget,
-                interval.startTargetPowerPercent,
-                interval.additionalProperties
-            )
-        }
-
         for (interval in intervals) {
             if (interval.name == "Workout") {
                 continue
@@ -85,4 +64,113 @@ class TrainerRoadWorkoutMapper {
         } else {
             description
         }.trim()
+
+    private fun logWorkoutDataSummary(
+        workoutData: Any?
+    ) {
+        when (workoutData) {
+            null -> {
+                log.info(
+                    "TrainerRoad WorkoutData is null"
+                )
+            }
+
+            is Map<*, *> -> {
+                log.info(
+                    "TrainerRoad WorkoutData. " +
+                        "type=Map, keys={}",
+                    workoutData.keys
+                )
+
+                workoutData.forEach { (key, value) ->
+                    log.info(
+                        "TrainerRoad WorkoutData property. " +
+                            "key={}, valueType={}, summary={}",
+                        key,
+                        value?.javaClass?.name,
+                        summarizeWorkoutDataValue(value)
+                    )
+                }
+            }
+
+            is List<*> -> {
+                log.info(
+                    "TrainerRoad WorkoutData. " +
+                        "type=List, size={}, first={}, last={}",
+                    workoutData.size,
+                    summarizeWorkoutDataValue(
+                        workoutData.firstOrNull()
+                    ),
+                    summarizeWorkoutDataValue(
+                        workoutData.lastOrNull()
+                    )
+                )
+            }
+
+            is String -> {
+                log.info(
+                    "TrainerRoad WorkoutData. " +
+                        "type=String, length={}, prefix={}",
+                    workoutData.length,
+                    workoutData.take(500)
+                )
+            }
+
+            else -> {
+                log.info(
+                    "TrainerRoad WorkoutData. " +
+                        "type={}, value={}",
+                    workoutData.javaClass.name,
+                    workoutData.toString().take(500)
+                )
+            }
+        }
+    }
+
+    private fun summarizeWorkoutDataValue(
+        value: Any?,
+        depth: Int = 0
+    ): String {
+        if (value == null) {
+            return "null"
+        }
+
+        if (depth >= 2) {
+            return value.javaClass.simpleName
+        }
+
+        return when (value) {
+            is Map<*, *> -> {
+                val keys = value.keys
+                    .take(20)
+
+                "Map(keys=$keys)"
+            }
+
+            is List<*> -> {
+                val first =
+                    summarizeWorkoutDataValue(
+                        value.firstOrNull(),
+                        depth + 1
+                    )
+
+                val last =
+                    summarizeWorkoutDataValue(
+                        value.lastOrNull(),
+                        depth + 1
+                    )
+
+                "List(size=${value.size}, " +
+                    "first=$first, last=$last)"
+            }
+
+            is String -> {
+                "\"${value.take(200)}\""
+            }
+
+            else -> {
+                value.toString().take(200)
+            }
+        }
+    }
 }
