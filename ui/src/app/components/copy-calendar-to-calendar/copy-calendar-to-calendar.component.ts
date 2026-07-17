@@ -11,7 +11,7 @@ import {MatSelectModule} from "@angular/material/select";
 import {MatCheckboxModule} from "@angular/material/checkbox";
 import {Platform} from "infrastructure/platform";
 import {formatDate} from "utils/date-formatter";
-import {NgIf} from "@angular/common";
+
 import {ConfigurationClient} from "infrastructure/client/configuration.client";
 import {finalize} from "rxjs";
 import {WorkoutClient} from "infrastructure/client/workout.client";
@@ -23,22 +23,21 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 @Component({
     selector: 'copy-calendar-to-calendar',
     imports: [
-        FormsModule,
-        MatButtonModule,
-        MatFormFieldModule,
-        MatInputModule,
-        ReactiveFormsModule,
-        MatProgressBarModule,
-        MatDatepickerModule,
-        MatNativeDateModule,
-        MatSnackBarModule,
-        MatSelectModule,
-        MatCheckboxModule,
-        NgIf,
-        MatTooltipModule,
-        MatIconModule,
-        RouterLink
-    ],
+    FormsModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    ReactiveFormsModule,
+    MatProgressBarModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatSnackBarModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    MatTooltipModule,
+    MatIconModule,
+    RouterLink
+],
     templateUrl: './copy-calendar-to-calendar.component.html',
     styleUrl: './copy-calendar-to-calendar.component.scss'
 })

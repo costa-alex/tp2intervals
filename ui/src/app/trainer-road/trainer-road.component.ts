@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { NgIf } from '@angular/common';
+
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatIconModule } from '@angular/material/icon';
@@ -20,14 +20,13 @@ import {
 @Component({
     selector: 'app-trainer-road',
     imports: [
-        NgIf,
-        MatExpansionModule,
-        MatProgressBarModule,
-        MatIconModule,
-        TrCopyLibraryToLibraryComponent,
-        TrCopyCalendarToLibraryComponent,
-        TrCopyCalendarToCalendarComponent
-    ],
+    MatExpansionModule,
+    MatProgressBarModule,
+    MatIconModule,
+    TrCopyLibraryToLibraryComponent,
+    TrCopyCalendarToLibraryComponent,
+    TrCopyCalendarToCalendarComponent
+],
     templateUrl: './trainer-road.component.html',
     styleUrl: './trainer-road.component.scss'
 })

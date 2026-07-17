@@ -9,7 +9,7 @@ import {
   TpCopyCalendarToLibraryComponent
 } from "app/training-peaks/tp-copy-calendar-to-library/tp-copy-calendar-to-library.component";
 import {MatExpansionModule} from "@angular/material/expansion";
-import {NgIf} from "@angular/common";
+
 import {ConfigurationClient} from "infrastructure/client/configuration.client";
 import {Platform} from "infrastructure/platform";
 import {MatProgressBarModule} from "@angular/material/progress-bar";
@@ -19,15 +19,14 @@ import {MatIconModule} from '@angular/material/icon';
 @Component({
     selector: 'app-training-peaks',
     imports: [
-        TpCopyCalendarToCalendarComponent,
-        TpCopyLibraryContainerComponent,
-        TpCopyCalendarToLibraryComponent,
-        MatExpansionModule,
-        NgIf,
-        MatProgressBarModule,
-        MatTooltipModule,
-        MatIconModule,
-    ],
+    TpCopyCalendarToCalendarComponent,
+    TpCopyLibraryContainerComponent,
+    TpCopyCalendarToLibraryComponent,
+    MatExpansionModule,
+    MatProgressBarModule,
+    MatTooltipModule,
+    MatIconModule
+],
     templateUrl: './training-peaks.component.html',
     styleUrl: './training-peaks.component.scss'
 })

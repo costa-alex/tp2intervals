@@ -5,7 +5,7 @@ import {MatButtonModule} from "@angular/material/button";
 import {MatFormFieldModule} from "@angular/material/form-field";
 import {MatInputModule} from "@angular/material/input";
 import {MatProgressBarModule} from "@angular/material/progress-bar";
-import {AsyncPipe, NgIf} from "@angular/common";
+import { AsyncPipe } from "@angular/common";
 import {MatDatepickerModule} from "@angular/material/datepicker";
 import {MatNativeDateModule} from "@angular/material/core";
 import {MatSnackBarModule} from "@angular/material/snack-bar";
@@ -27,22 +27,21 @@ import {StepModifier} from "app/training-peaks/tp-copy-library-container/step-mo
 @Component({
     selector: 'tp-copy-library-container',
     imports: [
-        MatGridListModule,
-        FormsModule,
-        MatButtonModule,
-        MatFormFieldModule,
-        MatInputModule,
-        ReactiveFormsModule,
-        MatProgressBarModule,
-        NgIf,
-        MatDatepickerModule,
-        MatNativeDateModule,
-        MatSnackBarModule,
-        MatSelectModule,
-        MatCheckboxModule,
-        AsyncPipe,
-        MatTooltipModule
-    ],
+    MatGridListModule,
+    FormsModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    ReactiveFormsModule,
+    MatProgressBarModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatSnackBarModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    AsyncPipe,
+    MatTooltipModule
+],
     templateUrl: './tp-copy-library-container.component.html',
     styleUrl: './tp-copy-library-container.component.scss'
 })

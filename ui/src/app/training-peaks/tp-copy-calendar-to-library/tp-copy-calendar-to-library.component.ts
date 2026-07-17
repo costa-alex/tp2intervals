@@ -9,7 +9,7 @@ import {MatButtonModule} from "@angular/material/button";
 import {MatFormFieldModule} from "@angular/material/form-field";
 import {MatInputModule} from "@angular/material/input";
 import {MatProgressBarModule} from "@angular/material/progress-bar";
-import {NgIf} from "@angular/common";
+
 import {MatDatepickerModule} from "@angular/material/datepicker";
 import {MatNativeDateModule} from "@angular/material/core";
 import {MatSnackBarModule} from "@angular/material/snack-bar";
@@ -20,20 +20,19 @@ import {Platform} from "infrastructure/platform";
 @Component({
     selector: 'tp-copy-calendar-to-library',
     imports: [
-        MatGridListModule,
-        FormsModule,
-        MatButtonModule,
-        MatFormFieldModule,
-        MatInputModule,
-        ReactiveFormsModule,
-        MatProgressBarModule,
-        NgIf,
-        MatDatepickerModule,
-        MatNativeDateModule,
-        MatSnackBarModule,
-        MatSelectModule,
-        MatCheckboxModule,
-    ],
+    MatGridListModule,
+    FormsModule,
+    MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    ReactiveFormsModule,
+    MatProgressBarModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatSnackBarModule,
+    MatSelectModule,
+    MatCheckboxModule
+],
     templateUrl: './tp-copy-calendar-to-library.component.html',
     styleUrl: './tp-copy-calendar-to-library.component.scss'
 })

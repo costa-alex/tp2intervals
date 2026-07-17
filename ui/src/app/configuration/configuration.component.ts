@@ -13,7 +13,7 @@ import {
 } from '@angular/forms';
 
 import { Router } from '@angular/router';
-import { NgIf } from '@angular/common';
+
 import { finalize } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
@@ -38,19 +38,18 @@ import { ThemeService } from 'infrastructure/theme.service';
 @Component({
     selector: 'app-configuration',
     imports: [
-        ReactiveFormsModule,
-        MatFormFieldModule,
-        MatInputModule,
-        MatButtonModule,
-        MatProgressBarModule,
-        NgIf,
-        MatCheckboxModule,
-        MatOptionModule,
-        MatSelectModule,
-        MatExpansionModule,
-        MatTooltipModule,
-        MatIconModule
-    ],
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatProgressBarModule,
+    MatCheckboxModule,
+    MatOptionModule,
+    MatSelectModule,
+    MatExpansionModule,
+    MatTooltipModule,
+    MatIconModule
+],
     templateUrl: './configuration.component.html',
     styleUrl: './configuration.component.scss'
 })
