@@ -1,11 +1,17 @@
 package io.github.costaalex.workoutrelay.infrastructure.platform.trainerroad.workout
 
+import io.github.costaalex.workoutrelay.domain.ExternalData
+import io.github.costaalex.workoutrelay.domain.TrainingType
+import io.github.costaalex.workoutrelay.domain.workout.Workout
+import io.github.costaalex.workoutrelay.domain.workout.WorkoutDetails
 import io.github.costaalex.workoutrelay.domain.workout.structure.SingleStep
 import io.github.costaalex.workoutrelay.domain.workout.structure.StepIntensity
 import io.github.costaalex.workoutrelay.domain.workout.structure.StepLength
 import io.github.costaalex.workoutrelay.domain.workout.structure.StepTarget
 import io.github.costaalex.workoutrelay.domain.workout.structure.WorkoutStep
 import io.github.costaalex.workoutrelay.domain.workout.structure.WorkoutStructure
+import org.slf4j.LoggerFactory
+import java.time.Duration
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 

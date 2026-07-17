@@ -258,83 +258,70 @@ class ToTPStructureConverter(
         }
 
     private fun mapRampStep(
-        structureStep: TPStructureStepDTO
-    ): SingleStep {
+        singleStep: SingleStep,
+        isFirstStep: Boolean,
+        isLastStep: Boolean
+    ): TPStructureStepDTO {
+        val rampUp =
+            singleStep.target.end >= singleStep.target.start
 
-        val mappedSteps =
-            structureStep.steps.map {
-                mapSingleStep(it)
-            }
-
-        require(mappedSteps.isNotEmpty()) {
-            "Ramp does not contain steps"
-        }
-
-        val firstStep = mappedSteps.first()
-        val lengthUnit = firstStep.length.unit
-
-        require(
-            mappedSteps.all {
-                it.length.unit == lengthUnit
-            }
-        ) {
-            "Ramp steps use different length units"
-        }
-
-        val totalLength =
-            mappedSteps.sumOf {
-                it.length.value
-            }
-
-        val targetValues =
-            mappedSteps.flatMap { step ->
-                listOf(
-                    step.target.start,
-                    step.target.end
-                )
-            }
-
+        /*
+        * TrainingPeaks espera que minValue seja sempre o valor inferior
+        * e maxValue seja sempre o valor superior. A direção da rampa é
+        * indicada pelo tipo rampUp/rampDown.
+        */
         val minimumTarget =
-            requireNotNull(
-                targetValues.minOrNull()
+            minOf(
+                singleStep.target.start,
+                singleStep.target.end
             )
 
         val maximumTarget =
-            requireNotNull(
-                targetValues.maxOrNull()
+            maxOf(
+                singleStep.target.start,
+                singleStep.target.end
             )
 
-        val target =
-            when (structureStep.type) {
-                "rampUp" ->
-                    StepTarget(
-                        start = minimumTarget,
-                        end = maximumTarget
-                    )
+        val intensityClassOverride =
+            when {
+                isFirstStep ->
+                    TPIntensityClass.WARM_UP
 
-                "rampDown" ->
-                    StepTarget(
-                        start = maximumTarget,
-                        end = minimumTarget
-                    )
+                isLastStep ->
+                    TPIntensityClass.COOL_DOWN
 
                 else ->
-                    throw IllegalArgumentException(
-                        "Unsupported ramp type: " +
-                            structureStep.type
-                    )
+                    null
             }
 
-        return SingleStep(
-            name = firstStep.name,
-            length = StepLength(
-                value = totalLength,
-                unit = lengthUnit
-            ),
-            target = target,
-            cadence = firstStep.cadence,
-            ramp = true,
-            intensity = firstStep.intensity
+        val nameOverride =
+            when {
+                isFirstStep ->
+                    "Warm Up"
+
+                isLastStep ->
+                    "Cool Down"
+
+                else ->
+                    null
+            }
+
+        val stepDTO =
+            mapToStepDTO(
+                workoutStep = singleStep,
+                intensityClassOverride =
+                    intensityClassOverride,
+                nameOverride = nameOverride,
+                mainTargetOverride =
+                    TPTargetDTO.mainTarget(
+                        minimumTarget,
+                        maximumTarget
+                    )
+            )
+
+        return TPStructureStepDTO.rampStep(
+            stepDTO = stepDTO,
+            rampUp = rampUp
         )
     }
 }
