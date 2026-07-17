@@ -1,4 +1,3 @@
-version: "3.9"
 services:
   workout-relay:
     image: ghcr.io/costa-alex/workout-relay:latest

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "New version, for example 0.1.1"
+        description: "New version, for example 0.4.13"
         required: true
         type: string
 
@@ -12,9 +12,13 @@ permissions:
   contents: write
   packages: write
 
+concurrency:
+  group: workout-relay-release
+  cancel-in-progress: false
+
 jobs:
   release:
-    name: Create release and publish Docker image
+    name: Validate and publish release
     runs-on: ubuntu-latest
 
     steps:
@@ -31,17 +35,19 @@ jobs:
           VERSION="${{ inputs.version }}"
           VERSION="${VERSION#v}"
 
-          if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+          if ! echo "$VERSION" |
+            grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
             echo "Invalid version: $VERSION"
-            echo "Use semantic versioning, for example: 0.1.1"
+            echo "Use semantic versioning, for example: 0.4.13"
             exit 1
           fi
 
           TAG="v$VERSION"
 
-          git fetch --tags
+          git fetch origin main --tags
 
-          if git rev-parse "refs/tags/$TAG" >/dev/null 2>&1; then
+          if git rev-parse "refs/tags/$TAG" \
+            >/dev/null 2>&1; then
             echo "Tag $TAG already exists"
             exit 1
           fi
@@ -49,47 +55,94 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
 
-      - name: Update boot/version
+      - name: Prepare release commit and tag
+        id: release-commit
         shell: bash
         run: |
-          echo "${{ steps.version.outputs.version }}" > boot/version
+          VERSION="${{ steps.version.outputs.version }}"
+          TAG="${{ steps.version.outputs.tag }}"
 
-      - name: Commit version change
-        shell: bash
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+
+          echo "$VERSION" > boot/version
 
           git add boot/version
 
           if git diff --cached --quiet; then
-            echo "boot/version already contains ${{ steps.version.outputs.version }}"
+            echo "boot/version already contains $VERSION"
             exit 1
           fi
 
-          git commit -m "Release ${{ steps.version.outputs.tag }} [skip ci]"
-          git push origin main
+          git commit -m "Release $TAG [skip ci]"
+          git tag -a "$TAG" -m "Release $TAG"
 
-      - name: Create and push tag
+          RELEASE_SHA="$(git rev-parse HEAD)"
+
+          echo "sha=$RELEASE_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: corretto
+          java-version: "21"
+          cache: gradle
+          cache-dependency-path: |
+            boot/*.gradle*
+            boot/gradle/wrapper/gradle-wrapper.properties
+
+      - name: Make Gradle wrapper executable
+        working-directory: boot
+        run: chmod +x gradlew
+
+      - name: Run backend tests
+        working-directory: boot
+        run: ./gradlew clean test --no-daemon
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22.23.1"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ui
+        run: npm ci
+
+      - name: Build frontend
+        working-directory: ui
+        run: npm run build
+
+      - name: Run frontend tests
+        working-directory: ui
+        run: >
+          npm test --
+          --watch=false
+          --browsers=ChromeHeadless
+
+      - name: Verify main has not changed
         shell: bash
         run: |
-          git tag -a "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.tag }}"
-          git push origin "${{ steps.version.outputs.tag }}"
+          git fetch origin main
 
-      - name: Create GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        shell: bash
-        run: |
-          gh release create "${{ steps.version.outputs.tag }}" \
-            --title "${{ steps.version.outputs.tag }}" \
-            --notes "Release ${{ steps.version.outputs.tag }}"
+          RELEASE_BASE="$(git rev-parse HEAD^)"
+          REMOTE_MAIN="$(git rev-parse origin/main)"
+
+          if [ "$RELEASE_BASE" != "$REMOTE_MAIN" ]; then
+            echo "main changed while the release was running"
+            echo "Expected: $RELEASE_BASE"
+            echo "Current:  $REMOTE_MAIN"
+            exit 1
+          fi
 
       - name: Set Docker image name
         id: image
         shell: bash
         run: |
-          echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/workout-relay" >> "$GITHUB_OUTPUT"
+          IMAGE="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/workout-relay"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
 
       - name: Login to GHCR
         uses: docker/login-action@v4
@@ -108,4 +161,33 @@ jobs:
           push: true
           tags: |
             ${{ steps.image.outputs.image }}:${{ steps.version.outputs.version }}
+            ${{ steps.image.outputs.image }}:${{ steps.release-commit.outputs.sha }}
             ${{ steps.image.outputs.image }}:latest
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.version=${{ steps.version.outputs.version }}
+            org.opencontainers.image.revision=${{ steps.release-commit.outputs.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Push release commit and tag
+        shell: bash
+        run: |
+          TAG="${{ steps.version.outputs.tag }}"
+
+          git push \
+            --atomic \
+            origin \
+            HEAD:main \
+            "$TAG"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          gh release create \
+            "${{ steps.version.outputs.tag }}" \
+            --verify-tag \
+            --title "${{ steps.version.outputs.tag }}" \
+            --generate-notes

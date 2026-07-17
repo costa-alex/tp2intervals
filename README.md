@@ -1,4 +1,4 @@
-[![Build branches](https://github.com/costa-alex/workout-relay/actions/workflows/docker.yml/badge.svg)](https://github.com/costa-alex/workout-relay/actions/workflows/docker.yml)
+[![CI](https://github.com/costa-alex/workout-relay/actions/workflows/docker.yml/badge.svg)](https://github.com/costa-alex/workout-relay/actions/workflows/docker.yml)
 [![Latest release](https://img.shields.io/github/v/release/costa-alex/workout-relay)](https://github.com/costa-alex/workout-relay/releases/latest)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
@@ -7,6 +7,8 @@
 Workout Relay is a self-hosted web application for copying and synchronizing planned workouts between **TrainerRoad**, **TrainingPeaks**, and **Intervals.icu**.
 
 It provides a responsive, mobile-friendly interface for manual synchronization, workout-library operations, recurring schedules, and synchronization history.
+
+Workout Relay is distributed exclusively as a Docker application. Electron and standalone desktop builds are not supported.
 
 > This project is independent and is not affiliated with, endorsed by, or sponsored by TrainerRoad, TrainingPeaks, or Intervals.icu. All trademarks belong to their respective owners.
 
@@ -24,6 +26,7 @@ It provides a responsive, mobile-friendly interface for manual synchronization, 
 - [Running with Docker Compose](#running-with-docker-compose)
 - [Updating](#updating)
 - [Building from source](#building-from-source)
+- [Continuous integration and releases](#continuous-integration-and-releases)
 - [Data, backups, and logs](#data-backups-and-logs)
 - [Security considerations](#security-considerations)
 - [Known limitations](#known-limitations)
@@ -244,7 +247,7 @@ services:
       # Global interval for all scheduled syncs. Accepted values: 1-24 hours.
       SCHEDULER_INTERVAL_HOURS: "${SCHEDULER_INTERVAL_HOURS:-1}"
       # Maximum number of synchronization executions retained in history.
-      SYNC_HISTORY_RETENTION_LIMIT: "100"
+      SYNC_HISTORY_RETENTION_LIMIT: "${SYNC_HISTORY_RETENTION_LIMIT:-100}"
     ports:
       - "8098:8080"
     volumes:
@@ -252,7 +255,18 @@ services:
 ```
 
 `SCHEDULER_INTERVAL_HOURS` is read when the application starts. It accepts whole hours from `1` to `24`, applies to every scheduled sync in the instance, and defaults to `1`. Recreate the container after changing it.
-`SYNC_HISTORY_RETENTION_LIMIT` is the maximum number of scheduler executions retained in history.
+
+`SYNC_HISTORY_RETENTION_LIMIT` is the maximum number of synchronization executions retained in history.
+
+### Environment variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `JAVA_TOOL_OPTIONS` | JVM default | Use `-Duser.timezone=<IANA timezone>` to control scheduler and history timestamps. |
+| `SCHEDULER_INTERVAL_HOURS` | `1` | Global execution interval for recurring schedules. Accepted values: `1` to `24`. |
+| `SYNC_HISTORY_RETENTION_LIMIT` | `100` | Maximum number of synchronization executions retained in history. |
+| `SPRING_DATASOURCE_URL` | `jdbc:sqlite:/data/workout-relay.sqlite` | SQLite JDBC connection URL. |
+| `LOGGING_FILE_NAME` | `/data/workout-relay.log` | Persistent application log location. |
 
 Start the application:
 
@@ -326,9 +340,9 @@ docker run --rm \
   workout-relay:local
 ```
 
-The multi-stage Docker build:
+The application has no separate desktop distribution. The multi-stage Docker build:
 
-1. builds the Angular UI with Node.js 20;
+1. builds the Angular UI with Node.js 22.23.1;
 2. copies the UI into the Spring Boot resources;
 3. builds the Kotlin application with Java 21;
 4. produces a single runtime container exposing port `8080`.
@@ -338,7 +352,7 @@ The multi-stage Docker build:
 Requirements:
 
 - Java 21
-- Node.js 20
+- Node.js 22.23.1, or another compatible Node.js 22 release
 - npm
 
 Start the backend from the repository root:
@@ -385,8 +399,54 @@ Frontend:
 cd ui
 npm ci
 npm run build
-npm test
+npm test -- --watch=false --browsers=ChromeHeadless
 ```
+
+Optional backend tests that communicate with external platforms:
+
+```bash
+cd boot
+./gradlew externalTest
+```
+
+These tests require valid external-platform credentials and are not part of the normal `test` task.
+
+## Continuous integration and releases
+
+The repository uses two GitHub Actions workflows.
+
+### Docker Build
+
+The Docker Build workflow runs for pull requests targeting `main`, pushes to `main`, and manual executions. It validates:
+
+1. backend compilation and tests;
+2. frontend dependency installation, production build, and headless tests;
+3. the complete multi-stage Docker image build.
+
+The Docker image validation only starts after both application test jobs succeed.
+
+### Release
+
+Releases are started manually by providing a semantic version such as `0.4.13`.
+
+The release workflow:
+
+1. validates the requested version;
+2. prepares the `boot/version` change and Git tag locally;
+3. runs backend and frontend validation;
+4. builds and publishes the Docker image;
+5. atomically pushes the release commit and tag;
+6. creates the GitHub Release.
+
+Published images use the following tags:
+
+```text
+ghcr.io/costa-alex/workout-relay:<version>
+ghcr.io/costa-alex/workout-relay:<release-commit-sha>
+ghcr.io/costa-alex/workout-relay:latest
+```
+
+Use a fixed version tag for predictable deployments. Use `latest` only when automatically following the newest release is intentional.
 
 ## Data, backups, and logs
 
@@ -447,7 +507,7 @@ The TrainingPeaks and TrainerRoad integrations depend on web endpoints and sessi
 
 ## Known limitations
 
-- TrainerRoad ramp steps are not currently supported.
+- TrainerRoad ramp steps are supported, but TrainingPeaks may display the label of some single-step descending ramps differently from the original direction.
 - TrainerRoad is supported as a source, not as a synchronization destination.
 - Changed-workout replacement is available for **Only today**, **Only tomorrow**, and scheduled TrainerRoad → TrainingPeaks rolling periods. The regular manual **Confirm** action still uses non-destructive copy behavior.
 - Changed-workout detection is primarily based on the TrainerRoad workout identifier. A content change that keeps the same identifier may be treated as already synchronized.
@@ -527,14 +587,19 @@ Additional discussion about the original project and workout conversion behavior
 
 ## Technology stack
 
-- Angular 17 and Angular Material
-- Kotlin 1.9
-- Spring Boot 3.2
+- Angular 21 and Angular Material 21
+- Node.js 22.23.1
+- TypeScript 5.9
+- Kotlin 2.3.21
+- Spring Boot 4.1
+- Spring Cloud 2025.1 and OpenFeign
+- Jackson 3
 - Java 21
-- Spring Data JPA and OpenFeign
+- Gradle 8.14.5
+- Spring Data JPA
 - SQLite
 - Liquibase
-- Docker
+- Docker and Docker Compose
 
 ## License
 
