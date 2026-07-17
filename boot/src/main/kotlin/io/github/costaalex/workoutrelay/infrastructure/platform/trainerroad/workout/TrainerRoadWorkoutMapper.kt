@@ -1,16 +1,13 @@
 package io.github.costaalex.workoutrelay.infrastructure.platform.trainerroad.workout
 
-import io.github.costaalex.workoutrelay.domain.ExternalData
-import io.github.costaalex.workoutrelay.domain.TrainingType
-import io.github.costaalex.workoutrelay.domain.workout.Workout
-import io.github.costaalex.workoutrelay.domain.workout.WorkoutDetails
-import io.github.costaalex.workoutrelay.domain.workout.structure.*
-import java.time.Duration
-import kotlin.math.roundToInt
-import org.slf4j.LoggerFactory
+import io.github.costaalex.workoutrelay.domain.workout.structure.SingleStep
+import io.github.costaalex.workoutrelay.domain.workout.structure.StepIntensity
+import io.github.costaalex.workoutrelay.domain.workout.structure.StepLength
+import io.github.costaalex.workoutrelay.domain.workout.structure.StepTarget
+import io.github.costaalex.workoutrelay.domain.workout.structure.WorkoutStep
+import io.github.costaalex.workoutrelay.domain.workout.structure.WorkoutStructure
 import kotlin.math.roundToInt
 import kotlin.math.roundToLong
-import io.github.costaalex.workoutrelay.domain.workout.structure.StepIntensity
 
 class TrainerRoadWorkoutMapper {
     private val log = LoggerFactory.getLogger(this.javaClass)
@@ -21,8 +18,6 @@ class TrainerRoadWorkoutMapper {
             intervals = trWorkout.intervalData,
             workoutData = trWorkout.workoutData
         )
-
-        val workoutData = trWorkout.additionalProperties["WorkoutData"]
 
         return Workout(
             toWorkoutDetails(trWorkout.details, removeHtmlTags),
@@ -135,7 +130,7 @@ class TrainerRoadWorkoutMapper {
                 null
             }
 
-        log.info(
+        log.debug(
             "Mapped TrainerRoad interval. name={}, startTick={}, lastTick={}, targetStart={}, targetEnd={}, ramp={}, intensity={}",
             interval.name,
             startTick,

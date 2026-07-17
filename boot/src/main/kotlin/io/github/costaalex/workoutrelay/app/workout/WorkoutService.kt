@@ -19,6 +19,20 @@ class WorkoutService(
     private val log = LoggerFactory.getLogger(this.javaClass)
     private val workoutRepositoryMap = workoutRepositories.associateBy { it.platform() }
     private val planRepositoryMap = planRepositories.associateBy { it.platform() }
+
+    private fun getWorkoutRepository(
+        platform: Platform
+    ): WorkoutRepository =
+        checkNotNull(workoutRepositoryMap[platform]) {
+            "No WorkoutRepository registered for platform $platform"
+        }
+
+    private fun getPlanRepository(
+        platform: Platform
+    ): LibraryContainerRepository =
+        checkNotNull(planRepositoryMap[platform]) {
+            "No LibraryContainerRepository registered for platform $platform"
+        }
     
     private data class DeleteWorkoutsResult(
         val removed: Int,
@@ -166,14 +180,9 @@ class WorkoutService(
             request.startDate
         )
 
-        val sourceRepository =
-            workoutRepositoryMap[request.sourcePlatform]!!
-
-        val targetRepository =
-            workoutRepositoryMap[request.targetPlatform]!!
-
-        val allSourceWorkouts =
-            sourceRepository.getWorkoutsFromCalendar(
+        val sourceRepository = getWorkoutRepository(request.sourcePlatform)
+        val targetRepository = getWorkoutRepository(request.targetPlatform)
+        val allSourceWorkouts = sourceRepository.getWorkoutsFromCalendar(
                 request.startDate,
                 request.endDate
             )
@@ -182,8 +191,7 @@ class WorkoutService(
             request.types.contains(it.details.type)
         }
 
-        val skippedByType =
-            allSourceWorkouts.size - sourceWorkouts.size
+        val skippedByType =  allSourceWorkouts.size - sourceWorkouts.size
 
         /*
         * Medida de segurança:
@@ -192,8 +200,7 @@ class WorkoutService(
         */
         if (sourceWorkouts.isEmpty()) {
             log.info(
-                "TrainerRoad returned no matching workouts for {}. " +
-                    "No TrainingPeaks workouts will be removed.",
+                "TrainerRoad returned no matching workouts for {}. No TrainingPeaks workouts will be removed.",
                 request.startDate
             )
 
@@ -280,8 +287,7 @@ class WorkoutService(
             )
         } else {
             log.warn(
-                "Skipping removal of {} replaced workouts because " +
-                    "{} workouts failed to sync",
+                "Skipping removal of {} replaced workouts because {} workouts failed to sync",
                 workoutsToRemove.size,
                 copyFailures.size
             )
@@ -308,8 +314,7 @@ class WorkoutService(
         )
 
         log.info(
-            "Reconciliation completed. date={}, copied={}, " +
-                "alreadySynced={}, removed={}, failed={}, failedToRemove={}",
+            "Reconciliation completed. date={}, copied={}, alreadySynced={}, removed={}, failed={}, failedToRemove={}",
             request.startDate,
             response.copied,
             response.skippedAlreadySynced,
@@ -325,13 +330,10 @@ class WorkoutService(
         request: CopyFromCalendarToCalendarRequest
     ): CopyWorkoutsResponse {
 
-        log.info("Received request for copy calendar to calendar: $request")
+        log.debug("Received request for copy calendar to calendar: $request")
 
-        val sourceWorkoutRepository =
-            workoutRepositoryMap[request.sourcePlatform]!!
-
-        val targetWorkoutRepository =
-            workoutRepositoryMap[request.targetPlatform]!!
+        val sourceWorkoutRepository = getWorkoutRepository(request.sourcePlatform)
+        val targetWorkoutRepository = getWorkoutRepository(request.targetPlatform)
 
         val allWorkouts = sourceWorkoutRepository.getWorkoutsFromCalendar(
             request.startDate,
@@ -342,8 +344,7 @@ class WorkoutService(
             request.types.contains(it.details.type)
         }
 
-        val skippedByType =
-            allWorkouts.size - workoutsAfterTypeFilter.size
+        val skippedByType = allWorkouts.size - workoutsAfterTypeFilter.size
 
         val workoutsToSync = if (
             request.skipSynced &&
@@ -366,8 +367,7 @@ class WorkoutService(
             workoutsAfterTypeFilter
         }
 
-        val skippedAlreadySynced =
-            workoutsAfterTypeFilter.size - workoutsToSync.size
+        val skippedAlreadySynced = workoutsAfterTypeFilter.size - workoutsToSync.size
 
         val saveResult = saveWorkoutsIndividually(
             repository = targetWorkoutRepository,
@@ -387,8 +387,7 @@ class WorkoutService(
         )
 
         log.info(
-            "Calendar sync completed. copied={}, skippedByType={}, " +
-                "skippedAlreadySynced={}, failed={}",
+            "Calendar sync completed. copied={}, skippedByType={}, skippedAlreadySynced={}, failed={}",
             response.copied,
             response.skippedByType,
             response.skippedAlreadySynced,
@@ -407,10 +406,10 @@ class WorkoutService(
     }
     
     fun copyWorkoutsC2L(request: CopyFromCalendarToLibraryRequest): CopyWorkoutsResponse {
-        log.info("Received request for copy calendar to library: $request")
-        val sourceWorkoutRepository = workoutRepositoryMap[request.sourcePlatform]!!
-        val targetWorkoutRepository = workoutRepositoryMap[request.targetPlatform]!!
-        val targetPlanRepository = planRepositoryMap[request.targetPlatform]!!
+        log.debug("Received request for copy calendar to library: $request")
+        val sourceWorkoutRepository = getWorkoutRepository(request.sourcePlatform)
+        val targetWorkoutRepository = getWorkoutRepository(request.targetPlatform)
+        val targetPlanRepository = getPlanRepository(request.targetPlatform)
 
         val allWorkouts = sourceWorkoutRepository.getWorkoutsFromCalendar(request.startDate, request.endDate)
         val filteredWorkouts = allWorkouts.filter { request.types.contains(it.details.type) }
@@ -431,9 +430,9 @@ class WorkoutService(
     }
 
     fun copyWorkoutL2L(request: CopyFromLibraryToLibraryRequest): CopyWorkoutsResponse {
-        log.info("Received request for copy library to library: $request")
-        val sourceWorkoutRepository = workoutRepositoryMap[request.sourcePlatform]!!
-        val targetWorkoutRepository = workoutRepositoryMap[request.targetPlatform]!!
+        log.debug("Received request for copy library to library: $request")
+        val sourceWorkoutRepository = getWorkoutRepository(request.sourcePlatform)
+        val targetWorkoutRepository = getWorkoutRepository(request.targetPlatform)
 
         val workout = sourceWorkoutRepository.getWorkoutFromLibrary(request.workoutExternalData)
         targetWorkoutRepository.saveWorkoutsToLibrary(request.targetLibraryContainer, listOf(workout))
@@ -449,13 +448,13 @@ class WorkoutService(
     }
 
     fun findWorkoutsByName(platform: Platform, name: String): List<WorkoutDetails> {
-        log.info("Received request for find workouts by name, platform: $platform, name: $name")
-        return workoutRepositoryMap[platform]!!.findWorkoutsFromLibraryByName(name)
+        log.debug("Received request for find workouts by name, platform: $platform, name: $name")
+        return getWorkoutRepository(platform).findWorkoutsFromLibraryByName(name)
     }
 
     fun deleteWorkoutsFromCalendar(request: DeleteWorkoutRequestDTO) {
-        log.info("Received request to delete workouts from calendar: $request")
-        val workoutRepository = workoutRepositoryMap[request.platform]!!
+        log.debug("Received request to delete workouts from calendar: $request")
+        val workoutRepository = getWorkoutRepository(request.platform)
         workoutRepository.deleteWorkoutsFromCalendar(request.startDate, request.endDate)
     }
        

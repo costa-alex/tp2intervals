@@ -9,8 +9,6 @@ import io.github.costaalex.workoutrelay.domain.workout.structure.WorkoutStep
 import io.github.costaalex.workoutrelay.domain.workout.structure.StepTarget
 import io.github.costaalex.workoutrelay.domain.workout.structure.WorkoutStructure
 import io.github.costaalex.workoutrelay.domain.workout.structure.StepIntensity
-import kotlin.math.ceil
-import kotlin.math.roundToInt
 import org.slf4j.LoggerFactory
 
 class ToTPStructureConverter(
@@ -40,7 +38,7 @@ class ToTPStructureConverter(
                     mappedStructure
                 )
 
-        log.info(
+        log.debug(
             "TrainingPeaks workout structure={}",
             json
         )
@@ -260,69 +258,83 @@ class ToTPStructureConverter(
         }
 
     private fun mapRampStep(
-        singleStep: SingleStep,
-        isFirstStep: Boolean,
-        isLastStep: Boolean
-    ): TPStructureStepDTO {
+        structureStep: TPStructureStepDTO
+    ): SingleStep {
 
-        val rampUp =
-            singleStep.target.end >
-                singleStep.target.start
-
-        val rampDown =
-            singleStep.target.end <
-                singleStep.target.start
-
-        require(rampUp || rampDown) {
-            "Ramp step must have different " +
-                "start and end targets"
-        }
-
-        val intensityClass =
-            when {
-                isFirstStep && rampUp ->
-                    TPIntensityClass.WARM_UP
-
-                isLastStep && rampDown ->
-                    TPIntensityClass.COOL_DOWN
-
-                else ->
-                    toIntensityClass(singleStep)
+        val mappedSteps =
+            structureStep.steps.map {
+                mapSingleStep(it)
             }
 
-        /*
-        * minValue e maxValue representam os limites
-        * do target. A direção é indicada pelo tipo
-        * rampUp ou rampDown.
-        */
+        require(mappedSteps.isNotEmpty()) {
+            "Ramp does not contain steps"
+        }
+
+        val firstStep = mappedSteps.first()
+        val lengthUnit = firstStep.length.unit
+
+        require(
+            mappedSteps.all {
+                it.length.unit == lengthUnit
+            }
+        ) {
+            "Ramp steps use different length units"
+        }
+
+        val totalLength =
+            mappedSteps.sumOf {
+                it.length.value
+            }
+
+        val targetValues =
+            mappedSteps.flatMap { step ->
+                listOf(
+                    step.target.start,
+                    step.target.end
+                )
+            }
+
         val minimumTarget =
-            minOf(
-                singleStep.target.start,
-                singleStep.target.end
+            requireNotNull(
+                targetValues.minOrNull()
             )
 
         val maximumTarget =
-            maxOf(
-                singleStep.target.start,
-                singleStep.target.end
+            requireNotNull(
+                targetValues.maxOrNull()
             )
 
-        val stepDTO =
-            mapToStepDTO(
-                workoutStep = singleStep,
-                intensityClassOverride =
-                    intensityClass,
-                nameOverride = "Ramp",
-                mainTargetOverride =
-                    TPTargetDTO.mainTarget(
-                        minimumTarget,
-                        maximumTarget
+        val target =
+            when (structureStep.type) {
+                "rampUp" ->
+                    StepTarget(
+                        start = minimumTarget,
+                        end = maximumTarget
                     )
-            )
 
-        return TPStructureStepDTO.rampStep(
-            stepDTO = stepDTO,
-            rampUp = rampUp
+                "rampDown" ->
+                    StepTarget(
+                        start = maximumTarget,
+                        end = minimumTarget
+                    )
+
+                else ->
+                    throw IllegalArgumentException(
+                        "Unsupported ramp type: " +
+                            structureStep.type
+                    )
+            }
+
+        return SingleStep(
+            name = firstStep.name,
+            length = StepLength(
+                value = totalLength,
+                unit = lengthUnit
+            ),
+            target = target,
+            cadence = firstStep.cadence,
+            ramp = true,
+            intensity = firstStep.intensity
         )
     }
 }
