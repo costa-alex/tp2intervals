@@ -6,13 +6,14 @@ class TrainingPeaksUserDTO(
     var userId: String?,
     val accountStatus: TPUserAccountStatusDTO,
 ) {
+
     @JsonProperty("user")
-    private fun mapUserId(map: Map<String, Any>) {
-        this.userId = (map["userId"] as Int).toString()
+    private fun mapUserId(map: Map<*, *>) {
+        userId = (map["userId"] as Number).toLong().toString()
     }
 
     class TPUserAccountStatusDTO(
         val isAthlete: Boolean,
-        val isPremium: Boolean,
+        val isPremium: Boolean = false,
     )
 }
