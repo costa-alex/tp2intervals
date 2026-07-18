@@ -4,6 +4,12 @@ import {
   HttpInterceptorFn,
   HttpRequest
 } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { catchError, throwError } from 'rxjs';
+
+import {
+  NotificationService
+} from 'infrastructure/notification.service';
 
 interface ApiErrorResponse {
   platform?: string;
@@ -12,13 +18,13 @@ interface ApiErrorResponse {
 }
 
 export const httpErrorInterceptor: HttpInterceptorFn = (
-  req: HttpRequest<unknown>,
+  request: HttpRequest<unknown>,
   next: HttpHandlerFn
 ) => {
   const notificationService =
     inject(NotificationService);
 
-  return next(req).pipe(
+  return next(request).pipe(
     catchError((error: HttpErrorResponse) => {
       const response =
         error.error as ApiErrorResponse | undefined;
