@@ -93,17 +93,13 @@ export class ConfigurationComponent implements OnInit {
     'training-peaks.auth-cookie': [
       null,
       [
-        Validators.pattern(
-          '^Production_tpAuth=[a-zA-Z0-9-_]*$'
-        )
+        Validators.pattern(/^(?:\*{8}|Production_tpAuth=[a-zA-Z0-9_-]+)$/)
       ]
     ],
     'trainer-road.auth-cookie': [
       null,
       [
-        Validators.pattern(
-          '^SharedTrainerRoadAuth=.*$'
-        )
+        Validators.pattern(/^(?:\*{8}|SharedTrainerRoadAuth=.+)$/)
       ]
     ],
     'trainer-road.remove-html-tags': [

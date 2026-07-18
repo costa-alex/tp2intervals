@@ -47,6 +47,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.wiremock:wiremock-standalone:3.5.2")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:6.3.0")
 }
 
 springBoot {

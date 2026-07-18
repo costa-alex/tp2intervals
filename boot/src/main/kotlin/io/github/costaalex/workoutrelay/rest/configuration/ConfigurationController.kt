@@ -23,7 +23,9 @@ class ConfigurationController(
     @GetMapping("/api/configuration")
     fun getConfigurations(): AppConfigurationDTO {
         log.debug("Received request for getting all configurations")
-        val configurations = configurationService.getConfigurations()
+
+        val configurations = configurationService.getConfigurationsForDisplay()
+
         return AppConfigurationDTO(configurations.configMap)
     }
 

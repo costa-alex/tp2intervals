@@ -21,17 +21,80 @@ class ConfigurationService(
     private val debugModeService: DebugModeService,
     private val cacheManager: CacheManager,
 ) {
+    companion object {
+        private const val MASKED_VALUE = "********"
+
+        private val SENSITIVE_CONFIGURATION_KEYS =
+            setOf(
+                "intervals.api-key",
+                "training-peaks.auth-cookie",
+                "trainer-road.auth-cookie",
+            )
+    }
+    
     private val platformInfoRepositoryMap = platformInfoRepositories.associateBy { it.platform() }
     private val log = LoggerFactory.getLogger(this.javaClass)
     
     fun getConfiguration(key: String): String? = appConfigurationRepository.getConfiguration(key)
 
     fun getConfigurations(): AppConfiguration = appConfigurationRepository.getConfigurations()
+    
+    fun getConfigurationsForDisplay(): AppConfiguration {
+        val configuration =
+            appConfigurationRepository.getConfigurations()
 
-    fun updateConfiguration(request: UpdateConfigurationRequest): List<String> {
-        val errors = platformConfigurationRepositories.mapNotNull { updateConfiguration(request, it) }
-        handleDebugModeIfNecessary(request)
+        val maskedConfig =
+            configuration.configMap.mapValues {
+                (key, value) ->
+
+                if (
+                    key in SENSITIVE_CONFIGURATION_KEYS &&
+                    value.isNotBlank()
+                ) {
+                    MASKED_VALUE
+                } else {
+                    value
+                }
+            }
+
+        return AppConfiguration(maskedConfig)
+    }
+
+    fun updateConfiguration(
+        request: UpdateConfigurationRequest,
+    ): List<String> {
+        val sanitizedRequest =
+            removeMaskedSensitiveValues(request)
+
+        val errors =
+            platformConfigurationRepositories.mapNotNull {
+                updateConfiguration(
+                    sanitizedRequest,
+                    it,
+                )
+            }
+
+        handleDebugModeIfNecessary(
+            sanitizedRequest
+        )
+
         return errors
+    }
+    
+    private fun removeMaskedSensitiveValues(
+        request: UpdateConfigurationRequest,
+    ): UpdateConfigurationRequest {
+        val sanitizedConfig =
+            request.configMap.filterNot {
+                (key, value) ->
+
+                key in SENSITIVE_CONFIGURATION_KEYS &&
+                    value == MASKED_VALUE
+            }
+
+        return UpdateConfigurationRequest(
+            sanitizedConfig
+        )
     }
 
    fun platformInfo(): Map<Platform, PlatformInfo> =

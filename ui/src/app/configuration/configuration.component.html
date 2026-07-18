@@ -45,6 +45,9 @@
           <mat-form-field class="full-width">
             <mat-label>TrainerRoad Auth Cookie</mat-label>
             <input type="password" matInput placeholder="TrainerRoadAuth=very_long_string" formControlName="trainer-road.auth-cookie">
+            <mat-hint>
+              The stored value is hidden. Leave it unchanged to keep the current value, or enter a new value to replace it.
+            </mat-hint>
             @if (formGroup.controls['trainer-road.auth-cookie'].errors?.['pattern']) {
               <mat-error>Must be in format SharedTrainerRoadAuth=...</mat-error>
             }
@@ -97,6 +100,9 @@
           <mat-form-field class="full-width">
             <mat-label>TrainingPeaks Auth Cookie</mat-label>
             <input type="password" matInput placeholder="Production_tpAuth=very_long_string" formControlName="training-peaks.auth-cookie">
+            <mat-hint>
+              The stored value is hidden. Leave it unchanged to keep the current value, or enter a new value to replace it.
+            </mat-hint>
             @if (formGroup.controls['training-peaks.auth-cookie'].errors?.['pattern']) {
               <mat-error>Must be in format Production_tpAuth=[a-zA-Z0-9-_]*</mat-error>
             }
@@ -135,6 +141,9 @@
           <mat-form-field class="full-width">
             <mat-label>Intervals API Key</mat-label>
             <input matInput type="password" placeholder="123456qwerty123456qwerty1" formControlName="intervals.api-key">
+            <mat-hint>
+              The stored value is hidden. Leave it unchanged to keep the current value, or enter a new value to replace it.
+            </mat-hint>
           </mat-form-field>
 
           <mat-form-field class="full-width">

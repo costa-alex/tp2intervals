@@ -12,15 +12,17 @@ import io.github.costaalex.workoutrelay.infrastructure.PlatformException
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertSame
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.doThrow
 import org.mockito.Mockito.mock
-import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.springframework.cache.Cache
 import org.springframework.cache.CacheManager
 import org.junit.jupiter.api.assertThrows
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.verify
 
 class ConfigurationServiceTest {
 
@@ -282,5 +284,126 @@ class ConfigurationServiceTest {
             }
 
         assertEquals("No PlatformInfoRepository registered for platform TRAINING_PEAKS", exception.message)
+    }
+    @Test
+    fun `should mask sensitive configuration values`() {
+        val storedConfiguration =
+            AppConfiguration(
+                mapOf(
+                    "intervals.api-key" to
+                        "secret-intervals-key",
+                    "training-peaks.auth-cookie" to
+                        "Production_tpAuth=secret",
+                    "trainer-road.auth-cookie" to
+                        "SharedTrainerRoadAuth=secret",
+                    "intervals.athlete-id" to
+                        "i12345",
+                )
+            )
+
+        `when`(
+            appConfigurationRepository
+                .getConfigurations()
+        ).thenReturn(storedConfiguration)
+
+        val result =
+            configurationService
+                .getConfigurationsForDisplay()
+
+        assertEquals(
+            "********",
+            result.configMap["intervals.api-key"],
+        )
+
+        assertEquals(
+            "********",
+            result.configMap[
+                "training-peaks.auth-cookie"
+            ],
+        )
+
+        assertEquals(
+            "********",
+            result.configMap[
+                "trainer-road.auth-cookie"
+            ],
+        )
+
+        assertEquals(
+            "i12345",
+            result.configMap[
+                "intervals.athlete-id"
+            ],
+        )
+    }
+    
+    @Test
+    fun `should ignore masked sensitive values on update`() {
+        val request =
+            UpdateConfigurationRequest(
+                mapOf(
+                    "intervals.api-key" to
+                        "********",
+                    "intervals.athlete-id" to
+                        "i12345",
+                )
+            )
+
+        configurationService
+            .updateConfiguration(request)
+
+        val requestCaptor =
+            argumentCaptor<UpdateConfigurationRequest>()
+
+        verify(
+            platformConfigurationRepository
+        ).updateConfig(
+            requestCaptor.capture()
+        )
+
+        val sanitizedRequest =
+            requestCaptor.firstValue
+
+        assertFalse(
+            sanitizedRequest.configMap
+                .containsKey("intervals.api-key")
+        )
+
+        assertEquals(
+            "i12345",
+            sanitizedRequest.configMap[
+                "intervals.athlete-id"
+            ],
+        )
+    }
+    
+    @Test
+    fun `should forward new sensitive value on update`() {
+        val request =
+            UpdateConfigurationRequest(
+                mapOf(
+                    "intervals.api-key" to
+                        "new-secret-key",
+                )
+            )
+
+        configurationService
+            .updateConfiguration(request)
+
+        val requestCaptor =
+            argumentCaptor<UpdateConfigurationRequest>()
+
+        verify(
+            platformConfigurationRepository
+        ).updateConfig(
+            requestCaptor.capture()
+        )
+
+        assertEquals(
+            "new-secret-key",
+            requestCaptor.firstValue.configMap[
+                "intervals.api-key"
+            ],
+        )
     }
 }
