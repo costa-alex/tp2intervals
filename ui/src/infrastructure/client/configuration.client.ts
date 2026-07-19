@@ -1,8 +1,19 @@
-import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 
 import { ConfigData } from '../config-data';
+
+interface ConfigurationResponse {
+  config: Record<string, string | null>;
+}
+
+interface PlatformInfoResponse {
+  infoMap?: PlatformConnectionInfo;
+}
+
+type PlatformInfoMapResponse =
+  Record<string, PlatformInfoResponse>;
 
 export interface PlatformConnectionInfo {
   isValid: boolean;
@@ -11,7 +22,8 @@ export interface PlatformConnectionInfo {
 }
 
 export interface PlatformConnectionMap {
-  [platformKey: string]: PlatformConnectionInfo | undefined;
+  [platformKey: string]:
+    PlatformConnectionInfo | undefined;
 }
 
 @Injectable({
@@ -20,40 +32,55 @@ export interface PlatformConnectionMap {
 export class ConfigurationClient {
 
   constructor(
-    private httpClient: HttpClient
+    private readonly httpClient: HttpClient
   ) {
   }
 
   getConfig(): Observable<ConfigData> {
     return this.httpClient
-      .get('/api/configuration')
+      .get<ConfigurationResponse>(
+        '/api/configuration'
+      )
       .pipe(
-        map((response: any) =>
-          new ConfigData(response?.config)
+        map(response =>
+          new ConfigData(response.config)
         )
       );
   }
 
-  updateConfig(configData: ConfigData): Observable<any> {
-    return this.httpClient.put(
+  updateConfig(
+    configData: ConfigData
+  ): Observable<void> {
+    return this.httpClient.put<void>(
       '/api/configuration',
       configData
     );
   }
 
-  getAllPlatformInfo(): Observable<PlatformConnectionMap> {
+  getAllPlatformInfo():
+    Observable<PlatformConnectionMap> {
     return this.httpClient
-      .get('/api/configuration/platform')
+      .get<PlatformInfoMapResponse>(
+        '/api/configuration/platform'
+      )
       .pipe(
-        map(response => this.unwrapPlatformInfo(response))
+        map(response =>
+          this.unwrapPlatformInfo(response)
+        )
       );
   }
 
-  refreshAllPlatformInfo(): Observable<PlatformConnectionMap> {
+  refreshAllPlatformInfo():
+    Observable<PlatformConnectionMap> {
     return this.httpClient
-      .post('/api/configuration/platform/refresh', {})
+      .post<PlatformInfoMapResponse>(
+        '/api/configuration/platform/refresh',
+        {}
+      )
       .pipe(
-        map(response => this.unwrapPlatformInfo(response))
+        map(response =>
+          this.unwrapPlatformInfo(response)
+        )
       );
   }
 
@@ -61,22 +88,28 @@ export class ConfigurationClient {
     platform: string
   ): Observable<PlatformConnectionInfo> {
     return this.httpClient
-      .get(`/api/configuration/${platform}`)
+      .get<PlatformInfoResponse>(
+        `/api/configuration/${platform}`
+      )
       .pipe(
-        map((response: any) =>
-          response?.infoMap ?? { isValid: false }
+        map(response =>
+          response.infoMap ?? {
+            isValid: false
+          }
         )
       );
   }
 
   private unwrapPlatformInfo(
-    response: any
+    response: PlatformInfoMapResponse
   ): PlatformConnectionMap {
     const result: PlatformConnectionMap = {};
 
-    Object.keys(response ?? {}).forEach(key => {
+    Object.keys(response).forEach(key => {
       result[key] =
-        response[key]?.infoMap ?? { isValid: false };
+        response[key]?.infoMap ?? {
+          isValid: false
+        };
     });
 
     return result;

@@ -23,6 +23,7 @@ import org.springframework.cache.CacheManager
 import org.junit.jupiter.api.assertThrows
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.verify
+import io.github.costaalex.workoutrelay.infrastructure.PlatformErrorCode
 
 class ConfigurationServiceTest {
 
@@ -113,8 +114,9 @@ class ConfigurationServiceTest {
 
         doThrow(
             PlatformException(
-                Platform.INTERVALS,
-                "Invalid credentials",
+                platform = Platform.INTERVALS,
+                code = PlatformErrorCode.AUTHENTICATION_FAILED,
+                message = "Invalid credentials",
             )
         )
             .`when`(platformConfigurationRepository)
@@ -124,7 +126,13 @@ class ConfigurationServiceTest {
             configurationService.updateConfiguration(request)
 
         assertEquals(
-            listOf("Intervals.icu: Invalid credentials"),
+            listOf(
+                ConfigurationUpdateError(
+                    platform = Platform.INTERVALS,
+                    code = PlatformErrorCode.AUTHENTICATION_FAILED,
+                    message = "Invalid credentials",
+                )
+            ),
             errors,
         )
 
@@ -236,7 +244,11 @@ class ConfigurationServiceTest {
 
         assertEquals(
             listOf(
-                "Intervals.icu: Database unavailable"
+                ConfigurationUpdateError(
+                    platform = Platform.INTERVALS,
+                    code = PlatformErrorCode.REQUEST_FAILED,
+                    message = "Database unavailable",
+                )
             ),
             errors,
         )
@@ -265,7 +277,11 @@ class ConfigurationServiceTest {
 
         assertEquals(
             listOf(
-                "Intervals.icu: Unexpected configuration error"
+                ConfigurationUpdateError(
+                    platform = Platform.INTERVALS,
+                    code = PlatformErrorCode.REQUEST_FAILED,
+                    message = "Unexpected configuration error",
+                )
             ),
             errors,
         )

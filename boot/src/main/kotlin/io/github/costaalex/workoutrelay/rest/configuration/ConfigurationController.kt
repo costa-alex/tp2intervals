@@ -4,7 +4,6 @@ import io.github.costaalex.workoutrelay.app.configuration.ConfigurationService
 import io.github.costaalex.workoutrelay.domain.Platform
 import io.github.costaalex.workoutrelay.domain.config.UpdateConfigurationRequest
 import io.github.costaalex.workoutrelay.domain.workout.structure.StepModifier
-import io.github.costaalex.workoutrelay.rest.ErrorResponseDTO
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -30,13 +29,34 @@ class ConfigurationController(
     }
 
     @PutMapping("/api/configuration")
-    fun updateConfiguration(@RequestBody requestDTO: UpdateConfigurationRequestDTO): ResponseEntity<ErrorResponseDTO> {
+    fun updateConfiguration(
+        @RequestBody requestDTO: UpdateConfigurationRequestDTO,
+    ): ResponseEntity<*> {
         log.debug("Received request for updating configuration")
-        val errors = configurationService.updateConfiguration(UpdateConfigurationRequest(requestDTO.config))
+
+        val errors = configurationService.updateConfiguration(
+                UpdateConfigurationRequest(requestDTO.config)
+            )
+
         if (errors.isNotEmpty()) {
-            return ResponseEntity.badRequest().body(ErrorResponseDTO(errors.joinToString()))
+            val response =ConfigurationUpdateErrorResponseDTO(
+                    message = "Some platform configurations could not be validated",
+                    errors =
+                        errors.map { error ->
+                            ConfigurationUpdateErrorDTO(
+                                platform = error.platform.title,
+                                code = error.code.name,
+                                message = error.message,
+                            )
+                        },
+                )
+
+            return ResponseEntity
+                .badRequest()
+                .body(response)
         }
-        return ResponseEntity.ok().build()
+
+        return ResponseEntity.ok().build<Void>()
     }
 
     @GetMapping("/api/configuration/intervals-step-modifiers")

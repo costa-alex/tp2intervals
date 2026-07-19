@@ -161,9 +161,7 @@ export class ConfigurationComponent implements OnInit {
           this.router.navigate(['/home']);
         },
         error: () => {
-          this.notificationService.error(
-            'Unable to save settings.'
-          );
+          // The HTTP interceptor already displayed the error.
         }
       });
   }
@@ -180,20 +178,16 @@ export class ConfigurationComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe({
-        next: config => {
-          this.formGroup.patchValue(
-            config.config,
-            {
-              emitEvent: false
-            }
-          );
-        },
-        error: () => {
-          this.notificationService.error(
-            'Unable to load settings.'
-          );
-        }
-      });
+      next: config => {
+        this.formGroup.patchValue(
+          config.config,
+          { emitEvent: false }
+        );
+      },
+      error: () => {
+        // The HTTP interceptor already displayed the error.
+      }
+    });
   }
 
   private listenCookie(

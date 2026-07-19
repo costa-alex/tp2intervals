@@ -11,10 +11,17 @@ import {
   NotificationService
 } from 'infrastructure/notification.service';
 
+interface ApiErrorItem {
+  platform?: string;
+  message: string;
+  code?: string;
+}
+
 interface ApiErrorResponse {
   platform?: string;
   message?: string;
   code?: string;
+  errors?: ApiErrorItem[];
 }
 
 export const httpErrorInterceptor: HttpInterceptorFn = (
@@ -26,22 +33,33 @@ export const httpErrorInterceptor: HttpInterceptorFn = (
 
   return next(request).pipe(
     catchError((error: HttpErrorResponse) => {
-      const response =
-        error.error as ApiErrorResponse | undefined;
-
       const message =
-        response?.message ??
-        error.message ??
-        'An unexpected error occurred';
+        buildErrorMessage(error);
 
-      const errorMessage =
-        response?.platform
-          ? `${response.platform}: ${message}`
-          : message;
-
-      notificationService.error(errorMessage);
+      notificationService.error(message);
 
       return throwError(() => error);
     })
   );
 };
+
+function buildErrorMessage(
+  error: HttpErrorResponse
+): string {
+  const response =
+    error.error as ApiErrorResponse | undefined;
+
+  if (response?.errors?.length) {
+    return response.errors
+      .map(item => {
+        return item.platform
+          ? `${item.platform}: ${item.message}`
+          : item.message;
+      })
+      .join('\n');
+  }
+
+  const message = response?.message ?? error.message ?? 'An unexpected error occurred';
+
+  return response?.platform ? `${response.platform}: ${message}` : message;
+}

@@ -62,7 +62,7 @@ class ConfigurationService(
 
     fun updateConfiguration(
         request: UpdateConfigurationRequest,
-    ): List<String> {
+    ): List<ConfigurationUpdateError> {
         val sanitizedRequest =
             removeMaskedSensitiveValues(request)
 
@@ -143,24 +143,30 @@ class ConfigurationService(
     private fun updateConfiguration(
         request: UpdateConfigurationRequest,
         repository: PlatformConfigurationRepository,
-    ): String? {
+    ): ConfigurationUpdateError? {
         return try {
             repository.updateConfig(request)
             null
         } catch (exception: PlatformException) {
-            "${exception.platform.title}: " +
-                (
-                    exception.message ?: "Unable to update configuration"
-                )
+            ConfigurationUpdateError(
+                platform = exception.platform,
+                code = exception.code,
+                message = exception.message ?: "Unable to update configuration",
+            )
         } catch (exception: Exception) {
             val platform = repository.platform()
 
-            log.error("Unexpected error while updating configuration for {}", platform.title, exception)
+            log.error(
+                "Unexpected error while updating configuration for {}",
+                platform.title,
+                exception,
+            )
 
-            "${platform.title}: " +
-                (
-                    exception.message ?: "Unexpected configuration error"
-                )
+            ConfigurationUpdateError(
+                platform = platform,
+                code = PlatformErrorCode.REQUEST_FAILED,
+                message = exception.message ?: "Unexpected configuration error",
+            )
         }
     }
 }
